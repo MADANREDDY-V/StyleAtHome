@@ -1,0 +1,11 @@
+.claude
+.antigravity
+docs
+database
+CLAUDE.md
+design-spec.md
+.env
+.env.local
+frontend/dist
+frontend/node_modules
+frontend/.env

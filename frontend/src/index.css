@@ -1,0 +1,99 @@
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Satoshi", system-ui, sans-serif;
+  
+  --color-bean: #3D1202;
+  --color-mahogany: #BA3D03;
+  --color-cadmium: #E58423;
+  --color-golf: #E8C581;
+  
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-radius: var(--radius);
+}
+
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #3D1202;
+    --card: #ffffff;
+    --card-foreground: #3D1202;
+    --popover: #ffffff;
+    --popover-foreground: #3D1202;
+    --primary: #BA3D03;
+    --primary-foreground: #ffffff;
+    --secondary: #E8C581;
+    --secondary-foreground: #3D1202;
+    --muted: #E8C581; /* Soft tint for backgrounds */
+    --muted-foreground: #BA3D03;
+    --accent: #E58423;
+    --accent-foreground: #ffffff;
+    --border: #E8C581;
+    --input: #E8C581;
+    --ring: #BA3D03;
+    --radius: 2.5rem; /* Bento 2.0 specs */
+  }
+  
+  .dark {
+    --background: #3D1202;
+    --foreground: #E8C581;
+    --card: #3D1202;
+    --card-foreground: #E8C581;
+    --popover: #3D1202;
+    --popover-foreground: #E8C581;
+    --primary: #E58423;
+    --primary-foreground: #ffffff;
+    --secondary: #BA3D03;
+    --secondary-foreground: #E8C581;
+    --muted: #4a1703; /* Slightly lighter than black bean */
+    --muted-foreground: #E8C581;
+    --accent: #BA3D03;
+    --accent-foreground: #ffffff;
+    --border: #BA3D03;
+    --input: #BA3D03;
+    --ring: #E58423;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground tracking-tight selection:bg-cadmium selection:text-white;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@utility liquid-glass {
+  @apply bg-white/40 dark:bg-bean/60 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.2),_0_20px_40px_-15px_rgba(0,0,0,0.05)];
+}
+
+@utility bento-card {
+  @apply bg-white dark:bg-bean liquid-glass p-8 sm:p-10 rounded-[2.5rem];
+}
+
+@utility scrollbar-hide {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
