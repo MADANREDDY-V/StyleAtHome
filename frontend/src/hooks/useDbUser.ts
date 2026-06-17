@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { supabase } from '../lib/supabase';
 import type { User } from '../types';
@@ -7,6 +7,7 @@ export function useDbUser() {
   const { user: clerkUser, isLoaded, isSignedIn } = useUser();
   const [dbUser, setDbUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const hasAttempted = useRef(false);
 
   useEffect(() => {
     async function syncUser() {
@@ -15,8 +16,13 @@ export function useDbUser() {
       if (!isSignedIn || !clerkUser) {
         setDbUser(null);
         setIsLoading(false);
+        hasAttempted.current = false;
         return;
       }
+
+      // Prevent infinite retry loops
+      if (hasAttempted.current) return;
+      hasAttempted.current = true;
 
       try {
         const email = clerkUser.primaryEmailAddress?.emailAddress;
@@ -27,60 +33,39 @@ export function useDbUser() {
           return;
         }
 
-        const mobile = clerkUser.primaryPhoneNumber?.phoneNumber || '';
         const name = clerkUser.fullName || clerkUser.firstName || 'User';
+        // Generate a short mobile placeholder that fits varchar(15): "t" + 10 random digits
+        const shortMobile = 't' + Math.random().toString().slice(2, 12);
 
         // Check if user exists
         const { data, error } = await supabase
           .from('users')
           .select('*')
           .eq('email', email)
-          .maybeSingle(); // Use maybeSingle instead of single to avoid throwing on no results
+          .maybeSingle();
 
         if (data) {
           setDbUser(data as User);
         } else if (!data && (!error || error.code === 'PGRST116')) {
           // User not found — create them
-          const insertPayload: Record<string, any> = {
-            name,
-            email,
-            mobile: mobile || `tmp-${Date.now()}`,
-            role: 'USER',
-          };
+          const { data: newData, error: insertError } = await supabase
+            .from('users')
+            .insert({
+              name,
+              email,
+              mobile: shortMobile,
+              role: 'USER',
+            })
+            .select()
+            .single();
 
-          // Only set optional columns if they exist in the schema
-          try {
-            const { data: newData, error: insertError } = await supabase
-              .from('users')
-              .insert(insertPayload)
-              .select()
-              .single();
-
-            if (insertError) {
-              // If mobile unique constraint fails, try with a different temp value
-              if (insertError.message?.includes('unique') || insertError.code === '23505') {
-                const { data: retryData, error: retryError } = await supabase
-                  .from('users')
-                  .insert({ ...insertPayload, mobile: `tmp-${crypto.randomUUID().split('-')[0]}` })
-                  .select()
-                  .single();
-                
-                if (!retryError && retryData) {
-                  setDbUser(retryData as User);
-                } else {
-                  console.error('useDbUser: Retry insert failed:', retryError?.message);
-                }
-              } else {
-                console.error('useDbUser: Insert failed:', insertError.message);
-              }
-            } else if (newData) {
-              setDbUser(newData as User);
-            }
-          } catch (insertErr) {
-            console.error('useDbUser: Insert exception:', insertErr);
+          if (insertError) {
+            console.error('useDbUser: Insert failed:', insertError.message);
+          } else if (newData) {
+            setDbUser(newData as User);
           }
         } else if (error) {
-          console.error('useDbUser: Query error:', error.message, error.code);
+          console.error('useDbUser: Query error:', error.message);
         }
       } catch (err) {
         console.error('useDbUser: Unexpected error:', err);
