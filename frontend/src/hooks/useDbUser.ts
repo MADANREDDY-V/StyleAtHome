@@ -12,7 +12,7 @@ export function useDbUser() {
   useEffect(() => {
     async function syncUser() {
       if (!isLoaded) return;
-      
+
       if (!isSignedIn || !clerkUser) {
         setDbUser(null);
         setIsLoading(false);
@@ -22,50 +22,51 @@ export function useDbUser() {
 
       const email = clerkUser.primaryEmailAddress?.emailAddress;
       if (!email) {
-        console.warn('useDbUser: No email on Clerk user');
         setIsLoading(false);
         return;
       }
 
-      // Don't re-sync if we already synced this email
+      // Don't re-sync the same email twice
       if (syncedRef.current === email) return;
       syncedRef.current = email;
 
       try {
         const name = clerkUser.fullName || clerkUser.firstName || 'User';
+        // Short temp mobile that fits varchar(15): "t" + 10 digits = 11 chars
         const shortMobile = 't' + Math.random().toString().slice(2, 12);
 
-        // Use upsert: creates if not exists, returns existing if found
-        // onConflict on email means: if email already exists, do nothing (just return the row)
-        const { data, error } = await supabase
+        // Step 1: Try to find existing user
+        const { data: existing } = await supabase
           .from('users')
-          .upsert(
-            {
-              name,
-              email,
-              mobile: shortMobile,
-              role: 'USER',
-            },
-            { onConflict: 'email', ignoreDuplicates: true }
-          )
-          .select()
-          .single();
+          .select('*')
+          .eq('email', email)
+          .maybeSingle();
 
-        if (data) {
-          setDbUser(data as User);
-        } else if (error) {
-          console.error('useDbUser: Upsert failed:', error.message);
-          // Fallback: try a plain select in case upsert returned no data but user exists
-          const { data: fallbackData } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', email)
-            .maybeSingle();
-          
-          if (fallbackData) {
-            setDbUser(fallbackData as User);
+        if (existing) {
+          setDbUser(existing as User);
+          return;
+        }
+
+        // Step 2: User not found — insert them
+        const { data: created, error: insertError } = await supabase
+          .from('users')
+          .insert({ name, email, mobile: shortMobile, role: 'USER' })
+          .select()
+          .maybeSingle();
+
+        if (created) {
+          setDbUser(created as User);
+        } else if (insertError) {
+          // Could be a race condition (another tab inserted first) — try select again
+          if (insertError.code === '23505') {
+            const { data: retry } = await supabase
+              .from('users')
+              .select('*')
+              .eq('email', email)
+              .maybeSingle();
+            if (retry) setDbUser(retry as User);
           } else {
-            console.error('useDbUser: Could not find or create user for', email);
+            console.error('useDbUser: Insert error:', insertError.message);
           }
         }
       } catch (err) {
