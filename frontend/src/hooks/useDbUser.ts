@@ -20,7 +20,14 @@ export function useDbUser() {
 
       try {
         const email = clerkUser.primaryEmailAddress?.emailAddress;
-        const mobile = clerkUser.primaryPhoneNumber?.phoneNumber || 'N/A';
+        
+        if (!email) {
+          console.warn('useDbUser: No email found on Clerk user');
+          setIsLoading(false);
+          return;
+        }
+
+        const mobile = clerkUser.primaryPhoneNumber?.phoneNumber || '';
         const name = clerkUser.fullName || clerkUser.firstName || 'User';
 
         // Check if user exists
@@ -28,31 +35,55 @@ export function useDbUser() {
           .from('users')
           .select('*')
           .eq('email', email)
-          .single();
+          .maybeSingle(); // Use maybeSingle instead of single to avoid throwing on no results
 
         if (data) {
           setDbUser(data as User);
-        } else if (error?.code === 'PGRST116') {
-          // User not found, insert
-          const { data: newData, error: insertError } = await supabase
-            .from('users')
-            .insert({
-              name,
-              email,
-              mobile: mobile !== 'N/A' ? mobile : `tmp-${clerkUser.id}`, // Mobile is required & unique in schema
-              firebase_uid: clerkUser.id, // Reusing this field for clerk id
-              role: 'USER',
-              email_verified: true
-            })
-            .select()
-            .single();
+        } else if (!data && (!error || error.code === 'PGRST116')) {
+          // User not found — create them
+          const insertPayload: Record<string, any> = {
+            name,
+            email,
+            mobile: mobile || `tmp-${Date.now()}`,
+            role: 'USER',
+          };
 
-          if (!insertError && newData) {
-            setDbUser(newData as User);
+          // Only set optional columns if they exist in the schema
+          try {
+            const { data: newData, error: insertError } = await supabase
+              .from('users')
+              .insert(insertPayload)
+              .select()
+              .single();
+
+            if (insertError) {
+              // If mobile unique constraint fails, try with a different temp value
+              if (insertError.message?.includes('unique') || insertError.code === '23505') {
+                const { data: retryData, error: retryError } = await supabase
+                  .from('users')
+                  .insert({ ...insertPayload, mobile: `tmp-${crypto.randomUUID().split('-')[0]}` })
+                  .select()
+                  .single();
+                
+                if (!retryError && retryData) {
+                  setDbUser(retryData as User);
+                } else {
+                  console.error('useDbUser: Retry insert failed:', retryError?.message);
+                }
+              } else {
+                console.error('useDbUser: Insert failed:', insertError.message);
+              }
+            } else if (newData) {
+              setDbUser(newData as User);
+            }
+          } catch (insertErr) {
+            console.error('useDbUser: Insert exception:', insertErr);
           }
+        } else if (error) {
+          console.error('useDbUser: Query error:', error.message, error.code);
         }
       } catch (err) {
-        console.error("Error syncing user:", err);
+        console.error('useDbUser: Unexpected error:', err);
       } finally {
         setIsLoading(false);
       }
