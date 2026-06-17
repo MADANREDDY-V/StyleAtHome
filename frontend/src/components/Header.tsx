@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Heart, ShoppingBag, Sparkles, Menu, X } from 'lucide-react';
-import { SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
+import { Search, Heart, ShoppingBag, Menu, X, Shield } from 'lucide-react';
+import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import { useDbUser } from '../hooks/useDbUser';
+import Logo from './Logo';
+
+const ADMIN_EMAIL = '23eg111a28@anurag.edu.in';
 
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
@@ -19,6 +23,8 @@ export default function Header() {
   const fetchCart = useStore((state) => state.fetchCart);
   const fetchTrialCart = useStore((state) => state.fetchTrialCart);
   const fetchWishlist = useStore((state) => state.fetchWishlist);
+
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL || dbUser?.role === 'ADMIN';
 
   useEffect(() => {
     if (dbUser) {
@@ -41,7 +47,6 @@ export default function Header() {
     { label: 'Women', path: '/products?section=Women' },
     { label: 'Kids', path: '/products?section=Kids' },
     { label: 'Stores', path: '/stores' },
-    { label: 'Brands', path: '/brands' },
     { label: 'Home Trial', path: '/trial-booking' },
   ];
 
@@ -73,10 +78,10 @@ export default function Header() {
             </button>
             <Link to="/" className="flex-shrink-0 flex items-center gap-2 group">
               <motion.div
-                whileHover={{ rotate: 180 }}
+                whileHover={{ rotate: 12 }}
                 transition={{ type: "spring", stiffness: 100, damping: 20 }}
               >
-                <Sparkles className="text-primary" size={28} />
+                <Logo size={28} className="text-primary" />
               </motion.div>
               <h1 className="text-2xl font-black tracking-tighter hidden sm:block">
                 Style<span className="text-primary">AtHome</span>
@@ -103,6 +108,18 @@ export default function Header() {
                 </Link>
               );
             })}
+            {/* Admin Link — visible only to admins */}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className={`text-sm font-bold tracking-tight transition-colors relative group flex items-center gap-1.5 ${location.pathname === '/admin' ? 'text-primary' : 'text-cadmium hover:text-primary'}`}
+              >
+                <Shield size={14} /> Admin
+                {location.pathname === '/admin' && (
+                  <motion.div layoutId="nav-indicator" className="absolute -bottom-2 left-0 right-0 h-1 bg-primary rounded-full" />
+                )}
+              </Link>
+            )}
           </nav>
 
           <div className="flex items-center gap-3 sm:gap-6">
@@ -125,12 +142,12 @@ export default function Header() {
                   <Heart size={20} strokeWidth={2} />
                 </Link>
                 <Link to="/trial-cart" className="relative p-2.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors hover:text-primary">
-                  <Sparkles size={20} strokeWidth={2} />
+                  <ShoppingBag size={20} strokeWidth={1.5} />
                   {trialCart.length > 0 && (
                     <motion.span 
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="absolute 2 top-1 right-1 bg-primary text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-[1.5px] border-white dark:border-bean shadow-sm"
+                      className="absolute top-1 right-1 bg-cadmium text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-[1.5px] border-white dark:border-bean shadow-sm"
                     >
                       {trialCart.length}
                     </motion.span>
@@ -142,7 +159,7 @@ export default function Header() {
                     <motion.span 
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="absolute 2 top-1 right-1 bg-primary text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-[1.5px] border-white dark:border-bean shadow-sm"
+                      className="absolute top-1 right-1 bg-primary text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-[1.5px] border-white dark:border-bean shadow-sm"
                     >
                       {cart.reduce((a, b) => a + b.quantity, 0)}
                     </motion.span>
@@ -194,6 +211,15 @@ export default function Header() {
                     {link.label}
                   </Link>
                 ))}
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="flex items-center gap-2 py-3 px-4 rounded-xl text-base font-bold text-cadmium hover:bg-cadmium/10 transition-colors"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <Shield size={16} /> Admin Console
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>

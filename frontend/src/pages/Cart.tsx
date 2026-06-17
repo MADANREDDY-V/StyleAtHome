@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Trash2, Sparkles, ShoppingBag, ArrowRight } from 'lucide-react';
+import { Trash2, Shirt, ShoppingBag, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '@clerk/clerk-react';
 import { useStore } from '../store/useStore';
@@ -9,7 +9,7 @@ export default function Cart() {
   const { isSignedIn } = useUser();
   const { dbUser, isLoading } = useDbUser();
   const cart = useStore((state) => state.cart);
-  const addToCart = useStore((state) => state.addToCart);
+  const updateCartQuantity = useStore((state) => state.updateCartQuantity);
   const removeFromCart = useStore((state) => state.removeFromCart);
 
   if (!isSignedIn) {
@@ -29,9 +29,9 @@ export default function Cart() {
   const tax = cartTotal * 0.05;
   const total = cartTotal + tax;
 
-  const updateQuantity = (productId: number, newQty: number, cartItemId: number) => {
+  const handleUpdateQuantity = (cartItemId: number, newQty: number) => {
     if (newQty < 1) return;
-    if (dbUser) addToCart(dbUser.id, productId, newQty - cart.find(i => i.id === cartItemId)!.quantity);
+    if (dbUser) updateCartQuantity(cartItemId, dbUser.id, newQty);
   };
 
   return (
@@ -95,9 +95,9 @@ export default function Cart() {
                     
                     <div className="flex items-center justify-between mt-6">
                       <div className="flex items-center bg-muted/30 rounded-2xl overflow-hidden">
-                        <button onClick={() => updateQuantity(item.product_id, item.quantity - 1, item.id)} className="px-4 py-2 hover:bg-muted/50 active:bg-muted/80 transition-colors font-black text-lg">−</button>
+                        <button onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)} className="px-4 py-2 hover:bg-muted/50 active:bg-muted/80 transition-colors font-black text-lg">−</button>
                         <span className="px-4 text-sm font-black w-8 text-center">{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.product_id, item.quantity + 1, item.id)} className="px-4 py-2 hover:bg-muted/50 active:bg-muted/80 transition-colors font-black text-lg">+</button>
+                        <button onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)} className="px-4 py-2 hover:bg-muted/50 active:bg-muted/80 transition-colors font-black text-lg">+</button>
                       </div>
                       <div className="text-right">
                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Subtotal</p>
@@ -136,7 +136,7 @@ export default function Cart() {
                 </Link>
                 
                 <Link to="/trial-cart" className="flex items-center justify-center gap-2 text-foreground/70 hover:text-primary text-xs font-black uppercase tracking-widest mt-4 hover:bg-primary/5 py-4 rounded-2xl transition-colors border-2 border-transparent hover:border-primary/20">
-                  <Sparkles size={16} /> Switch to Trial Cart
+                  <Shirt size={16} /> Switch to Trial Cart
                 </Link>
               </div>
             </div>

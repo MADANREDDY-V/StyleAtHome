@@ -2,6 +2,7 @@ import { ClerkProvider, SignIn, SignUp } from '@clerk/clerk-react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Header from './components/Header'
+import Footer from './components/Footer'
 import Home from './pages/Home'
 import Products from './pages/Products'
 import ProductDetail from './pages/ProductDetail'
@@ -24,7 +25,7 @@ function App() {
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} signUpFallbackRedirectUrl="/" signInFallbackRedirectUrl="/">
       <Router>
-        <div className="min-h-screen flex flex-col bg-background text-foreground font-sans selection:bg-purple-500/30">
+        <div className="min-h-screen flex flex-col bg-background text-foreground font-sans selection:bg-cadmium/30">
           <Header />
           <Toaster position="top-center" toastOptions={{
             style: {
@@ -59,7 +60,7 @@ function App() {
               <Route path="/brands" element={<Navigate to="/products?brand=true" />} />
               
               <Route path="*" element={
-                <div className="text-center py-32 mt-16 glass-card max-w-2xl mx-auto">
+                <div className="text-center py-32 mt-16 bento-card max-w-2xl mx-auto">
                   <h1 className="text-6xl font-black mb-4">404</h1>
                   <p className="text-xl text-muted-foreground mb-8">Page not found</p>
                   <a href="/" className="bg-primary text-white px-8 py-3 rounded-full font-bold">Go Home</a>
@@ -67,6 +68,7 @@ function App() {
               } />
             </Routes>
           </main>
+          <Footer />
         </div>
       </Router>
     </ClerkProvider>

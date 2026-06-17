@@ -11,7 +11,7 @@ export default function Stores() {
 
   useEffect(() => {
     async function fetchStores() {
-      const { data } = await supabase.from('stores').select('*').order('name');
+      const { data } = await supabase.from('stores').select('*').eq('is_active', true).order('name');
       if (data) setStores(data as Store[]);
       setLoading(false);
     }
@@ -38,12 +38,12 @@ export default function Stores() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             key={store.id} 
-            className="glass-card overflow-hidden group flex flex-col"
+            className="bento-card !p-0 overflow-hidden group flex flex-col"
           >
-            <div className="relative h-40 overflow-hidden bg-black/5 dark:bg-white/5">
-              <img src={store.banner_url || 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600'} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <img src={store.logo_url || 'https://via.placeholder.com/150'} alt={store.name} className="absolute bottom-[-20px] left-6 w-16 h-16 rounded-full border-4 border-background object-cover shadow-lg" />
+            <div className="relative h-40 overflow-hidden bg-muted/30">
+              <img src={store.banner_url || `https://picsum.photos/seed/${store.slug}/600/300`} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-t from-bean/60 to-transparent" />
+              <img src={store.logo_url || `https://picsum.photos/seed/${store.slug}-logo/150/150`} alt={store.name} className="absolute bottom-[-20px] left-6 w-16 h-16 rounded-full border-4 border-background object-cover shadow-lg" />
             </div>
             <div className="pt-8 p-6 flex-1 flex flex-col">
               <h2 className="text-xl font-bold text-foreground tracking-tight">{store.name}</h2>
@@ -51,7 +51,7 @@ export default function Stores() {
               
               <Link
                 to={`/store/${store.slug}`}
-                className="mt-6 w-full bg-black/5 dark:bg-white/5 hover:bg-purple-600 hover:text-white text-foreground text-sm font-bold px-5 py-3 rounded-xl transition-all duration-300 text-center shadow-sm"
+                className="mt-6 w-full bg-foreground hover:bg-primary text-background text-sm font-bold px-5 py-3 rounded-xl transition-all duration-300 text-center shadow-sm hover:-translate-y-[1px] active:scale-[0.98]"
               >
                 Visit Store
               </Link>

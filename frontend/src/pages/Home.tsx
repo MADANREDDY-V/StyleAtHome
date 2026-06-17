@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, TrendingUp, Compass, ShoppingBag } from 'lucide-react';
+import { ArrowRight, TrendingUp, Compass, ShoppingBag } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import type { Product, Store } from '../types';
 import ProductCard from '../components/ProductCard';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Logo from '../components/Logo';
 
 export default function Home() {
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
@@ -19,8 +20,8 @@ export default function Home() {
   useEffect(() => {
     async function fetchData() {
       const [productsRes, storesRes] = await Promise.all([
-        supabase.from('products').select('*').eq('is_new_arrival', true).limit(6),
-        supabase.from('stores').select('*').limit(4)
+        supabase.from('products').select('*').eq('is_new_arrival', true).eq('is_active', true).limit(6),
+        supabase.from('stores').select('*').eq('is_active', true).limit(4)
       ]);
       
       if (productsRes.data) setNewArrivals(productsRes.data as Product[]);
@@ -45,7 +46,7 @@ export default function Home() {
           className="flex-1 w-full z-10 space-y-8"
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/20 bg-primary/5">
-            <Sparkles size={16} className="text-primary" />
+            <Logo size={16} className="text-primary" />
             <span className="text-xs font-bold tracking-widest uppercase text-foreground">The Enterprise Wardrobe</span>
           </div>
           
@@ -138,7 +139,7 @@ export default function Home() {
                     
                     <div className="relative z-10 flex flex-col h-full justify-between">
                       <div className="w-16 h-16 bg-background rounded-2xl p-3 shadow-sm mb-8 ring-1 ring-border group-hover:scale-110 transition-transform duration-300">
-                        <img src={store.logo_url || 'https://via.placeholder.com/150'} alt={store.name} className="w-full h-full object-contain rounded-xl" />
+                        <img src={store.logo_url || `https://picsum.photos/seed/${store.slug}-logo/150/150`} alt={store.name} className="w-full h-full object-contain rounded-xl" />
                       </div>
                       <div>
                         <h4 className="font-black text-xl text-foreground mb-2 group-hover:text-primary transition-colors">{store.name}</h4>
@@ -179,7 +180,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ delay: (i % 3) * 0.15, type: "spring", stiffness: 100, damping: 20 }}
-                className={i % 3 === 1 ? 'md:mt-12 lg:mt-24' : i % 3 === 2 ? 'lg:mt-12' : ''}
+                className=""
               >
                 <ProductCard product={p} />
               </motion.div>

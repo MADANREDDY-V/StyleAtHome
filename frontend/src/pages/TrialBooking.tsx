@@ -25,7 +25,6 @@ export default function TrialBooking() {
   const [newAddress, setNewAddress] = useState({ full_name: '', mobile: '', flat_no: '', street: '', city: '', state: '', pincode: '' });
   const [loading, setLoading] = useState(false);
 
-  // Mock slots since we don't have a slots table in postgres_schema.sql
   const MOCK_SLOTS = ['10:00 AM - 12:00 PM', '01:00 PM - 03:00 PM', '04:00 PM - 06:00 PM'];
 
   useEffect(() => {
@@ -65,7 +64,6 @@ export default function TrialBooking() {
           return;
         }
         
-        // Save new address
         const { error: addrError } = await supabase.from('addresses').insert({
           user_id: dbUser.id,
           ...newAddress,
@@ -75,8 +73,10 @@ export default function TrialBooking() {
         if (addrError) throw addrError;
       }
 
-      // Create booking
+      const bookingNumber = 'TRL-' + crypto.randomUUID().split('-')[0].toUpperCase();
+
       const { error: bookingError } = await supabase.from('bookings').insert({
+        booking_number: bookingNumber,
         user_id: dbUser.id,
         session_type: 'home-trial',
         booking_date: selectedDate,
@@ -89,12 +89,11 @@ export default function TrialBooking() {
 
       if (bookingError) throw bookingError;
 
-      // Clear trial cart
       await supabase.from('trial_cart_items').delete().eq('user_id', dbUser.id);
       await fetchTrialCart(dbUser.id);
 
       toast.success('Home trial booked successfully!');
-      navigate('/'); // Or a confirmation page
+      navigate('/profile?tab=trials');
     } catch (err: any) {
       toast.error(err.message || 'Booking failed');
     } finally {
@@ -105,8 +104,8 @@ export default function TrialBooking() {
   if (!isSignedIn) return null;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 mt-16 sm:mt-24">
-      <h1 className="text-3xl font-black text-center mb-2 tracking-tight">Home Trial Booking</h1>
+    <div className="max-w-3xl mx-auto px-4 mt-24 sm:mt-32 mb-24">
+      <h1 className="text-4xl font-black text-center mb-2 tracking-tight">Home Trial Booking</h1>
       <p className="text-center text-muted-foreground text-sm mb-10">Experience fashion at your doorstep before you commit</p>
 
       {/* Progress Steps */}
@@ -115,19 +114,19 @@ export default function TrialBooking() {
           <div key={s} className="flex items-center gap-2 md:gap-4">
             <div className={`flex items-center gap-2 transition-colors ${i <= step ? 'opacity-100' : 'opacity-50 grayscale'}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                i === step ? 'bg-purple-600 text-white ring-4 ring-purple-600/20' : 
-                i < step ? 'bg-green-500 text-white' : 'bg-black/10 dark:bg-white/10 text-foreground'
+                i === step ? 'bg-primary text-white ring-4 ring-primary/20' : 
+                i < step ? 'bg-cadmium text-white' : 'bg-muted text-foreground'
               }`}>
                 {i < step ? <CheckCircle size={14} /> : i + 1}
               </div>
-              <span className={`text-xs font-bold hidden sm:block ${i === step ? 'text-purple-600 dark:text-purple-400' : 'text-foreground'}`}>{s}</span>
+              <span className={`text-xs font-bold hidden sm:block ${i === step ? 'text-primary' : 'text-foreground'}`}>{s}</span>
             </div>
             {i < STEPS.length - 1 && <div className="w-4 h-[2px] bg-border rounded-full" />}
           </div>
         ))}
       </div>
 
-      <div className="glass-card p-6 sm:p-10 min-h-[400px] flex flex-col justify-between overflow-hidden relative">
+      <div className="bento-card border border-border/50 min-h-[400px] flex flex-col justify-between overflow-hidden relative">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -138,27 +137,27 @@ export default function TrialBooking() {
           >
             {step === 0 && (
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-2 mb-6"><CheckCircle size={20} className="text-purple-600" /> Trial Cart Items</h2>
+                <h2 className="text-xl font-black flex items-center gap-2 mb-6"><CheckCircle size={20} className="text-primary" /> Trial Cart Items</h2>
                 {trialCart.length === 0 ? (
                   <div className="text-center py-12">
                     <p className="text-muted-foreground mb-4">No items in trial cart.</p>
-                    <a href="/products" className="text-purple-600 font-bold hover:underline">Browse products</a>
+                    <a href="/products" className="text-primary font-bold hover:underline">Browse products</a>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {trialCart.map((item) => (
-                      <div key={item.id} className="flex gap-4 items-center bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-border">
+                      <div key={item.id} className="flex gap-4 items-center bg-muted/30 p-4 rounded-xl border border-border/50">
                         <img src={item.product?.image_url} alt="" className="w-16 h-20 object-cover rounded-lg shadow-sm" />
                         <div className="flex-1">
                           <p className="text-sm font-bold text-foreground">{item.product?.name}</p>
                           <p className="text-xs text-muted-foreground mt-1">{item.product?.brand} | {item.size}</p>
                         </div>
-                        <p className="font-black">₹{item.product?.price}</p>
+                        <p className="font-black font-mono">₹{item.product?.price}</p>
                       </div>
                     ))}
-                    <div className="flex justify-between items-center p-4 bg-purple-600/5 rounded-xl border border-purple-600/20 mt-4">
-                      <p className="text-sm font-semibold text-purple-600 dark:text-purple-400">Home Trial Booking Fee</p>
-                      <p className="font-black text-purple-600 dark:text-purple-400">₹50</p>
+                    <div className="flex justify-between items-center p-4 bg-primary/5 rounded-xl border border-primary/20 mt-4">
+                      <p className="text-sm font-bold text-primary">Home Trial Booking Fee</p>
+                      <p className="font-black text-primary font-mono">₹50</p>
                     </div>
                   </div>
                 )}
@@ -167,7 +166,7 @@ export default function TrialBooking() {
 
             {step === 1 && (
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-2 mb-6"><Calendar size={20} className="text-purple-600" /> Select Date & Time</h2>
+                <h2 className="text-xl font-black flex items-center gap-2 mb-6"><Calendar size={20} className="text-primary" /> Select Date & Time</h2>
                 <div className="space-y-6">
                   <div>
                     <label className="text-sm font-bold text-muted-foreground uppercase tracking-wide mb-2 block">Choose Date</label>
@@ -176,7 +175,7 @@ export default function TrialBooking() {
                       min={minDateStr}
                       value={selectedDate}
                       onChange={(e) => { setSelectedDate(e.target.value); setSelectedSlot(''); }}
-                      className="bg-black/5 dark:bg-white/5 border border-border rounded-xl px-4 py-3 text-sm w-full md:w-1/2 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                      className="bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm w-full md:w-1/2 focus:outline-none focus:ring-2 focus:ring-primary/50"
                     />
                   </div>
                   {selectedDate && (
@@ -189,10 +188,10 @@ export default function TrialBooking() {
                           <button
                             key={s}
                             onClick={() => setSelectedSlot(s)}
-                            className={`py-3 px-4 border rounded-xl text-sm font-bold transition-all ${
+                            className={`py-3 px-4 border-2 rounded-xl text-sm font-bold transition-all ${
                               selectedSlot === s 
-                                ? 'border-purple-600 bg-purple-600 text-white shadow-md' 
-                                : 'bg-background hover:border-purple-400 text-foreground'
+                                ? 'border-primary bg-primary text-white shadow-md' 
+                                : 'border-border bg-background hover:border-primary text-foreground'
                             }`}
                           >
                             {s}
@@ -207,18 +206,18 @@ export default function TrialBooking() {
 
             {step === 2 && (
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-2 mb-6"><MapPin size={20} className="text-purple-600" /> Delivery Address</h2>
+                <h2 className="text-xl font-black flex items-center gap-2 mb-6"><MapPin size={20} className="text-primary" /> Delivery Address</h2>
                 {addresses.length > 0 && (
                   <div className="space-y-3 mb-8">
                     <label className="text-sm font-bold text-muted-foreground uppercase tracking-wide mb-2 block">Saved Addresses</label>
                     {addresses.map((addr) => (
-                      <label key={addr.id} className={`block p-4 border rounded-xl cursor-pointer transition-all ${
+                      <label key={addr.id} className={`block p-4 border-2 rounded-xl cursor-pointer transition-all ${
                         selectedAddress?.id === addr.id 
-                          ? 'border-purple-600 bg-purple-600/5 ring-1 ring-purple-600' 
-                          : 'bg-background hover:border-foreground/50'
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary' 
+                          : 'border-border bg-background hover:border-primary/50'
                       }`}>
                         <div className="flex items-start gap-3">
-                          <input type="radio" name="address" checked={selectedAddress?.id === addr.id} onChange={() => setSelectedAddress(addr)} className="mt-1 accent-purple-600" />
+                          <input type="radio" name="address" checked={selectedAddress?.id === addr.id} onChange={() => setSelectedAddress(addr)} className="mt-1 accent-primary" />
                           <div>
                             <p className="font-bold text-sm text-foreground">{addr.full_name}</p>
                             <p className="text-sm text-muted-foreground mt-1">{addr.flat_no}, {addr.street}, {addr.city} - {addr.pincode}</p>
@@ -240,7 +239,7 @@ export default function TrialBooking() {
                       placeholder={field.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                       value={(newAddress as any)[field]}
                       onChange={(e) => { setSelectedAddress(null); setNewAddress({ ...newAddress, [field]: e.target.value }); }}
-                      className="bg-black/5 dark:bg-white/5 border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                      className="bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                     />
                   ))}
                 </div>
@@ -249,14 +248,14 @@ export default function TrialBooking() {
 
             {step === 3 && (
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-2 mb-6"><CheckCircle size={20} className="text-purple-600" /> Confirm Booking</h2>
-                <div className="bg-black/5 dark:bg-white/5 rounded-2xl p-6 border border-border space-y-4 text-sm">
-                  <div className="flex justify-between items-center"><span className="text-muted-foreground font-semibold uppercase tracking-wider text-xs">Items</span><span className="font-bold text-base">{trialCart.length} products</span></div>
-                  <div className="flex justify-between items-center"><span className="text-muted-foreground font-semibold uppercase tracking-wider text-xs">Date</span><span className="font-bold text-base">{selectedDate}</span></div>
-                  <div className="flex justify-between items-center"><span className="text-muted-foreground font-semibold uppercase tracking-wider text-xs">Time Slot</span><span className="font-bold text-base">{selectedSlot}</span></div>
-                  <div className="flex justify-between items-center pb-4 border-b border-border"><span className="text-muted-foreground font-semibold uppercase tracking-wider text-xs">Booking Fee</span><span className="font-black text-lg text-purple-600 dark:text-purple-400">₹50</span></div>
+                <h2 className="text-xl font-black flex items-center gap-2 mb-6"><CheckCircle size={20} className="text-primary" /> Confirm Booking</h2>
+                <div className="bg-muted/20 rounded-2xl p-6 border border-border/50 space-y-4 text-sm">
+                  <div className="flex justify-between items-center"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Items</span><span className="font-bold text-base">{trialCart.length} products</span></div>
+                  <div className="flex justify-between items-center"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Date</span><span className="font-bold text-base">{selectedDate}</span></div>
+                  <div className="flex justify-between items-center"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Time Slot</span><span className="font-bold text-base">{selectedSlot}</span></div>
+                  <div className="flex justify-between items-center pb-4 border-b border-border"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Booking Fee</span><span className="font-black text-lg text-primary font-mono">₹50</span></div>
                   <div className="pt-2">
-                    <p className="text-muted-foreground font-semibold uppercase tracking-wider text-xs mb-2">Delivery Address</p>
+                    <p className="text-muted-foreground font-bold uppercase tracking-wider text-xs mb-2">Delivery Address</p>
                     <p className="font-bold text-foreground leading-relaxed">
                       {selectedAddress
                         ? `${selectedAddress.full_name}\n${selectedAddress.flat_no}, ${selectedAddress.street}, ${selectedAddress.city} - ${selectedAddress.pincode}`
@@ -271,7 +270,7 @@ export default function TrialBooking() {
 
         <div className="flex justify-between mt-10 pt-6 border-t border-border/50">
           {step > 0 ? (
-            <button onClick={() => setStep(step - 1)} className="flex items-center gap-1 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors px-4 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5">
+            <button onClick={() => setStep(step - 1)} className="flex items-center gap-1 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors px-4 py-2 rounded-lg hover:bg-muted/30">
               <ChevronLeft size={16} /> Back
             </button>
           ) : <div />}
@@ -284,7 +283,7 @@ export default function TrialBooking() {
                 if (step === 2 && !selectedAddress && (!newAddress.street || !newAddress.pincode)) { toast.error('Select or enter full address'); return; }
                 setStep(step + 1);
               }}
-              className="flex items-center gap-2 bg-foreground text-background font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+              className="flex items-center gap-2 bg-foreground hover:bg-primary text-background font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             >
               Continue <ChevronRight size={16} />
             </button>
@@ -292,7 +291,7 @@ export default function TrialBooking() {
             <button
               onClick={handleConfirm}
               disabled={loading}
-              className="flex items-center gap-2 bg-purple-600 text-white font-bold px-8 py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+              className="flex items-center gap-2 bg-primary hover:bg-cadmium text-white font-bold px-8 py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? 'Processing...' : 'Confirm & Pay ₹50'}
             </button>

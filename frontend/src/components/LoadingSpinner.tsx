@@ -1,11 +1,11 @@
-import { Sparkles } from "lucide-react"
+import Logo from "./Logo"
 
 export default function LoadingSpinner({ fullPage = false }: { fullPage?: boolean }) {
   if (fullPage) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-6">
         <div className="relative">
-          <Sparkles className="text-primary animate-pulse relative z-10" size={40} />
+          <Logo size={40} className="text-primary animate-pulse relative z-10" />
           <div className="absolute inset-0 bg-primary/20 blur-xl animate-pulse rounded-full" />
         </div>
         <p className="text-foreground text-sm font-bold tracking-widest uppercase animate-pulse">Curating your experience...</p>
@@ -19,11 +19,11 @@ export default function LoadingSpinner({ fullPage = false }: { fullPage?: boolea
       {Array.from({ length: 6 }).map((_, i) => (
         <div 
           key={i} 
-          className={`flex flex-col h-full ${i % 3 === 1 ? 'md:mt-12 lg:mt-24' : i % 3 === 2 ? 'lg:mt-12' : ''}`}
+          className="flex flex-col h-full"
         >
           <div className="relative w-full aspect-[3/4] rounded-3xl overflow-hidden mb-4 bg-muted/30">
             {/* Shimmer effect */}
-            <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           </div>
           
           <div className="flex flex-col flex-1 justify-between gap-4">

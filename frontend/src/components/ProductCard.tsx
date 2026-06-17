@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag, Sparkles } from 'lucide-react';
+import { Heart, ShoppingBag, Shirt } from 'lucide-react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import type { Product } from '../types';
 import { useStore } from '../store/useStore';
@@ -145,7 +145,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               onClick={handleAddToTrial}
               className="flex-1 flex items-center justify-center gap-2 border-2 border-border hover:border-primary text-foreground hover:text-primary font-bold py-3 rounded-2xl transition-all hover:-translate-y-[2px] active:scale-[0.98]"
             >
-              <Sparkles size={16} /> Trial
+              <Shirt size={16} /> Trial
             </button>
             <button
               onClick={() => toggleWishlist(product.id)}

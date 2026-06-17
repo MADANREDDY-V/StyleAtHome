@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { ShoppingBag } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Product, Category } from '../types';
 import ProductCard from '../components/ProductCard';
@@ -40,7 +41,7 @@ export default function Products() {
       if (catData) setCategories(catData as Category[]);
 
       // Fetch products
-      let query = supabase.from('products').select('*');
+      let query = supabase.from('products').select('*').eq('is_active', true);
       
       if (filters.section) query = query.eq('section', filters.section);
       if (filters.search) query = query.ilike('name', `%${filters.search}%`);
@@ -83,7 +84,7 @@ export default function Products() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className="bg-black/5 dark:bg-white/5 border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 appearance-none min-w-[160px] cursor-pointer"
+          className="bg-black/5 dark:bg-white/5 border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 appearance-none min-w-[160px] cursor-pointer"
         >
           <option value="popularity">Sort by: Popularity</option>
           <option value="price_low">Price: Low to High</option>
@@ -100,15 +101,15 @@ export default function Products() {
           {loading ? (
              <LoadingSpinner />
           ) : products.length === 0 ? (
-            <div className="glass-card flex flex-col items-center justify-center py-32 text-center">
-              <div className="w-20 h-20 bg-black/5 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
-                <span className="text-3xl">📭</span>
+            <div className="bento-card flex flex-col items-center justify-center py-32 text-center border border-border/50">
+              <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mb-4">
+                <ShoppingBag className="text-muted-foreground/40" size={32} />
               </div>
               <h3 className="text-xl font-bold">No products found</h3>
               <p className="text-muted-foreground mt-2">Try adjusting your filters or search criteria</p>
               <button 
                 onClick={() => setFilters({ section: filters.section })}
-                className="mt-6 text-purple-600 font-semibold hover:underline"
+                className="mt-6 text-primary font-bold hover:underline"
               >
                 Clear Filters
               </button>

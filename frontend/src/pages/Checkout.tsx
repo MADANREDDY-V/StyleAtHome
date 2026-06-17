@@ -72,7 +72,7 @@ export default function Checkout() {
 
     setLoading(true);
     try {
-      const orderNumber = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+      const orderNumber = 'ORD-' + crypto.randomUUID().split('-')[0].toUpperCase();
       
       const { data: order, error: orderError } = await supabase.from('orders').insert({
         order_number: orderNumber,
@@ -102,6 +102,22 @@ export default function Checkout() {
 
       await supabase.from('cart_items').delete().eq('user_id', dbUser.id);
       await fetchCart(dbUser.id);
+
+      // Save address for future reuse
+      const { data: existingAddr } = await supabase.from('addresses').select('id').eq('user_id', dbUser.id).limit(1);
+      if (!existingAddr || existingAddr.length === 0) {
+        await supabase.from('addresses').insert({
+          user_id: dbUser.id,
+          full_name: address.name,
+          mobile: address.mobile,
+          flat_no: address.flatNo,
+          street: address.street,
+          city: address.city,
+          state: address.state,
+          pincode: address.pincode,
+          is_default: true,
+        });
+      }
 
       toast.success('Logistics confirmed successfully!');
       navigate('/profile?tab=orders');

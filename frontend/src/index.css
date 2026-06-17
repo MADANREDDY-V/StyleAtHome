@@ -23,15 +23,24 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --radius-radius: var(--radius);
+
+  --animate-shimmer: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 @layer base {
   :root {
-    --background: #ffffff;
+    --background: #FDFAF7;
     --foreground: #3D1202;
     --card: #ffffff;
     --card-foreground: #3D1202;
@@ -41,33 +50,37 @@
     --primary-foreground: #ffffff;
     --secondary: #E8C581;
     --secondary-foreground: #3D1202;
-    --muted: #E8C581; /* Soft tint for backgrounds */
-    --muted-foreground: #BA3D03;
+    --muted: #F3EDE5;
+    --muted-foreground: #8B6914;
     --accent: #E58423;
     --accent-foreground: #ffffff;
-    --border: #E8C581;
-    --input: #E8C581;
+    --destructive: #DC2626;
+    --destructive-foreground: #ffffff;
+    --border: #E8DDD0;
+    --input: #E8DDD0;
     --ring: #BA3D03;
-    --radius: 2.5rem; /* Bento 2.0 specs */
+    --radius: 2.5rem;
   }
   
   .dark {
-    --background: #3D1202;
-    --foreground: #E8C581;
-    --card: #3D1202;
-    --card-foreground: #E8C581;
-    --popover: #3D1202;
-    --popover-foreground: #E8C581;
+    --background: #1A0A02;
+    --foreground: #F3EDE5;
+    --card: #2A1508;
+    --card-foreground: #F3EDE5;
+    --popover: #2A1508;
+    --popover-foreground: #F3EDE5;
     --primary: #E58423;
     --primary-foreground: #ffffff;
     --secondary: #BA3D03;
-    --secondary-foreground: #E8C581;
-    --muted: #4a1703; /* Slightly lighter than black bean */
+    --secondary-foreground: #F3EDE5;
+    --muted: #2A1508;
     --muted-foreground: #E8C581;
     --accent: #BA3D03;
     --accent-foreground: #ffffff;
-    --border: #BA3D03;
-    --input: #BA3D03;
+    --destructive: #EF4444;
+    --destructive-foreground: #ffffff;
+    --border: #3D1202;
+    --input: #3D1202;
     --ring: #E58423;
   }
 }
@@ -77,17 +90,21 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground tracking-tight selection:bg-cadmium selection:text-white;
+    @apply bg-background text-foreground tracking-tight selection:bg-cadmium/30 selection:text-bean;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @utility liquid-glass {
-  @apply bg-white/40 dark:bg-bean/60 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.2),_0_20px_40px_-15px_rgba(0,0,0,0.05)];
+  @apply bg-white/60 dark:bg-bean/60 backdrop-blur-2xl border border-white/30 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_20px_40px_-15px_rgba(0,0,0,0.06)];
+}
+
+@utility glass-card {
+  @apply bg-white/80 dark:bg-bean/40 backdrop-blur-xl border border-border/50 shadow-[0_4px_24px_-6px_rgba(61,18,2,0.06)] p-6 sm:p-8 rounded-2xl;
 }
 
 @utility bento-card {
-  @apply bg-white dark:bg-bean liquid-glass p-8 sm:p-10 rounded-[2.5rem];
+  @apply bg-white dark:bg-card p-8 sm:p-10 rounded-[2.5rem] border border-border/40 shadow-[0_4px_24px_-6px_rgba(61,18,2,0.06)];
 }
 
 @utility scrollbar-hide {

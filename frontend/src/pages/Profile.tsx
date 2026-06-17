@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useUser, UserProfile } from '@clerk/clerk-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Heart, MapPin, Settings, Package, Activity } from 'lucide-react';
+import { CalendarCheck, Heart, MapPin, Settings, Package, Activity } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useDbUser } from '../hooks/useDbUser';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -11,7 +11,7 @@ import ProductCard from '../components/ProductCard';
 const TABS = [
   { id: 'overview', label: 'Command Center', icon: Activity },
   { id: 'orders', label: 'Logistics', icon: Package },
-  { id: 'trials', label: 'Wardrobe Trials', icon: Sparkles },
+  { id: 'trials', label: 'Wardrobe Trials', icon: CalendarCheck },
   { id: 'wishlist', label: 'Curations', icon: Heart },
   { id: 'addresses', label: 'Destinations', icon: MapPin },
   { id: 'settings', label: 'Preferences', icon: Settings }
@@ -135,7 +135,7 @@ export default function Profile() {
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {[
                       { label: 'Active Logistics', count: orders.length, tab: 'orders', icon: Package },
-                      { label: 'Pending Trials', count: bookings.length, tab: 'trials', icon: Sparkles },
+                      { label: 'Pending Trials', count: bookings.length, tab: 'trials', icon: CalendarCheck },
                       { label: 'Curated Items', count: wishlist.length, tab: 'wishlist', icon: Heart },
                     ].map((card, i) => {
                       const Icon = card.icon;
@@ -231,7 +231,7 @@ export default function Profile() {
                     <h2 className="text-3xl font-black tracking-tight mb-8">Wardrobe Trials</h2>
                     {bookings.length === 0 ? (
                       <div className="bento-card py-24 text-center">
-                        <Sparkles className="mx-auto text-muted-foreground/30 mb-6" size={64} />
+                        <CalendarCheck className="mx-auto text-muted-foreground/30 mb-6" size={64} />
                         <p className="text-xl font-bold text-muted-foreground">No wardrobe trials scheduled.</p>
                       </div>
                     ) : bookings.map((b) => (

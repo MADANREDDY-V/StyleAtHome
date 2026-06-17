@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Store as StoreIcon, ShoppingBag } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Product, Store } from '../types';
 import ProductCard from '../components/ProductCard';
@@ -30,7 +31,8 @@ export default function StorePage() {
         const { data: productsData } = await supabase
           .from('products')
           .select('*')
-          .eq('store_id', storeData.id);
+          .eq('store_id', storeData.id)
+          .eq('is_active', true);
           
         if (productsData) {
           setProducts(productsData as Product[]);
@@ -49,7 +51,7 @@ export default function StorePage() {
   if (loading) return <LoadingSpinner fullPage />;
   if (!store) return (
     <div className="flex flex-col items-center justify-center min-h-[50vh]">
-      <span className="text-4xl mb-4">🏪</span>
+      <StoreIcon className="text-muted-foreground/30 mb-4" size={48} />
       <h2 className="text-2xl font-bold">Store not found</h2>
       <p className="text-muted-foreground mt-2">We couldn't find the store you're looking for.</p>
     </div>
@@ -61,11 +63,11 @@ export default function StorePage() {
       animate={{ opacity: 1 }}
       className="mt-16 sm:mt-24 space-y-8"
     >
-      <div className="relative h-48 md:h-64 rounded-3xl overflow-hidden glass-card">
-        <img src={store.banner_url || 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1200'} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end">
+      <div className="relative h-48 md:h-64 rounded-3xl overflow-hidden bento-card !p-0">
+        <img src={store.banner_url || `https://picsum.photos/seed/${store.slug}/1200/400`} alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-bean/80 via-bean/30 to-transparent flex items-end">
           <div className="p-8 flex items-end gap-6 w-full">
-            <img src={store.logo_url || 'https://via.placeholder.com/150'} alt="" className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-background object-cover shadow-2xl" />
+            <img src={store.logo_url || `https://picsum.photos/seed/${store.slug}-logo/150/150`} alt="" className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-background object-cover shadow-2xl" />
             <div className="pb-2">
               <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">{store.name}</h1>
               <p className="text-white/80 text-sm md:text-base mt-2 max-w-xl">{store.description}</p>
@@ -80,10 +82,10 @@ export default function StorePage() {
             <button
               key={s}
               onClick={() => setSection(s)}
-              className={`px-6 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-300 ${
+              className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
                 section === s 
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20' 
-                  : 'bg-black/5 dark:bg-white/5 text-foreground hover:bg-black/10 dark:hover:bg-white/10'
+                  ? 'bg-primary text-white shadow-md' 
+                  : 'bg-muted/50 text-foreground hover:bg-muted'
               }`}
             >
               {s || 'All Categories'}
@@ -93,12 +95,12 @@ export default function StorePage() {
 
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">{section || 'All'} Products</h2>
-          <p className="text-sm font-semibold text-muted-foreground bg-black/5 dark:bg-white/5 px-3 py-1 rounded-full">{filtered.length} items</p>
+          <p className="text-sm font-bold text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">{filtered.length} items</p>
         </div>
         
         {filtered.length === 0 ? (
-          <div className="text-center py-20 glass-card">
-            <span className="text-4xl block mb-4">👕</span>
+          <div className="text-center py-20 bento-card border border-border/50">
+            <ShoppingBag className="mx-auto text-muted-foreground/30 mb-4" size={48} />
             <p className="text-muted-foreground font-medium">No products found in this category.</p>
           </div>
         ) : (

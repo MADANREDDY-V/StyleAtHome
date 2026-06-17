@@ -12,6 +12,7 @@ interface StoreState {
   addToCart: (userId: number, productId: number, quantity?: number) => Promise<void>;
   addToTrialCart: (userId: number, productId: number, size?: string, color?: string) => Promise<void>;
   removeFromCart: (cartItemId: number) => Promise<void>;
+  updateCartQuantity: (cartItemId: number, userId: number, quantity: number) => Promise<void>;
   removeFromTrialCart: (trialCartItemId: number) => Promise<void>;
   toggleWishlist: (userId: number, productId: number) => Promise<void>;
 }
@@ -28,7 +29,9 @@ export const useStore = create<StoreState>((set, get) => ({
       .eq('user_id', userId);
     
     if (!error && data) {
-      set({ cart: data as CartItem[] });
+      // Filter out items whose product is inactive or deleted
+      const activeItems = data.filter((item: any) => item.product && item.product.is_active !== false);
+      set({ cart: activeItems as CartItem[] });
     }
   },
 
@@ -80,6 +83,15 @@ export const useStore = create<StoreState>((set, get) => ({
     const { error } = await supabase.from('cart_items').delete().eq('id', cartItemId);
     if (!error) {
       set(state => ({ cart: state.cart.filter(item => item.id !== cartItemId) }));
+    }
+  },
+
+  updateCartQuantity: async (cartItemId, _userId, quantity) => {
+    if (quantity < 1) return;
+    const { error } = await supabase.from('cart_items').update({ quantity }).eq('id', cartItemId);
+    if (!error) {
+      // Optimistic update then refetch
+      set(state => ({ cart: state.cart.map(item => item.id === cartItemId ? { ...item, quantity } : item) }));
     }
   },
 
