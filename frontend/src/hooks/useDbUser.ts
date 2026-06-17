@@ -7,7 +7,7 @@ export function useDbUser() {
   const { user: clerkUser, isLoaded, isSignedIn } = useUser();
   const [dbUser, setDbUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const hasAttempted = useRef(false);
+  const syncedRef = useRef<string | null>(null);
 
   useEffect(() => {
     async function syncUser() {
@@ -16,56 +16,57 @@ export function useDbUser() {
       if (!isSignedIn || !clerkUser) {
         setDbUser(null);
         setIsLoading(false);
-        hasAttempted.current = false;
+        syncedRef.current = null;
         return;
       }
 
-      // Prevent infinite retry loops
-      if (hasAttempted.current) return;
-      hasAttempted.current = true;
+      const email = clerkUser.primaryEmailAddress?.emailAddress;
+      if (!email) {
+        console.warn('useDbUser: No email on Clerk user');
+        setIsLoading(false);
+        return;
+      }
+
+      // Don't re-sync if we already synced this email
+      if (syncedRef.current === email) return;
+      syncedRef.current = email;
 
       try {
-        const email = clerkUser.primaryEmailAddress?.emailAddress;
-        
-        if (!email) {
-          console.warn('useDbUser: No email found on Clerk user');
-          setIsLoading(false);
-          return;
-        }
-
         const name = clerkUser.fullName || clerkUser.firstName || 'User';
-        // Generate a short mobile placeholder that fits varchar(15): "t" + 10 random digits
         const shortMobile = 't' + Math.random().toString().slice(2, 12);
 
-        // Check if user exists
+        // Use upsert: creates if not exists, returns existing if found
+        // onConflict on email means: if email already exists, do nothing (just return the row)
         const { data, error } = await supabase
           .from('users')
-          .select('*')
-          .eq('email', email)
-          .maybeSingle();
-
-        if (data) {
-          setDbUser(data as User);
-        } else if (!data && (!error || error.code === 'PGRST116')) {
-          // User not found — create them
-          const { data: newData, error: insertError } = await supabase
-            .from('users')
-            .insert({
+          .upsert(
+            {
               name,
               email,
               mobile: shortMobile,
               role: 'USER',
-            })
-            .select()
-            .single();
+            },
+            { onConflict: 'email', ignoreDuplicates: true }
+          )
+          .select()
+          .single();
 
-          if (insertError) {
-            console.error('useDbUser: Insert failed:', insertError.message);
-          } else if (newData) {
-            setDbUser(newData as User);
-          }
+        if (data) {
+          setDbUser(data as User);
         } else if (error) {
-          console.error('useDbUser: Query error:', error.message);
+          console.error('useDbUser: Upsert failed:', error.message);
+          // Fallback: try a plain select in case upsert returned no data but user exists
+          const { data: fallbackData } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .maybeSingle();
+          
+          if (fallbackData) {
+            setDbUser(fallbackData as User);
+          } else {
+            console.error('useDbUser: Could not find or create user for', email);
+          }
         }
       } catch (err) {
         console.error('useDbUser: Unexpected error:', err);
