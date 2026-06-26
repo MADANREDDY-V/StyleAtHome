@@ -106,6 +106,10 @@ export default function ProductCard({ product }: ProductCardProps) {
               NEW
             </span>
           )}
+          {/* Try Me badge — always shown since all products support trial */}
+          <span className="absolute bottom-4 left-4 bg-primary text-white text-[10px] uppercase font-black px-3 py-1.5 rounded-full tracking-wider shadow-md flex items-center gap-1 backdrop-blur-sm">
+            <Shirt size={10} /> Try Me
+          </span>
         </motion.div>
       </Link>
 

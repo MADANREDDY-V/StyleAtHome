@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useUser, UserProfile } from '@clerk/clerk-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CalendarCheck, Heart, MapPin, Settings, Package, Activity } from 'lucide-react';
+import { CalendarCheck, Heart, MapPin, Settings, Package, Activity, Timer, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useDbUser } from '../hooks/useDbUser';
+import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ProductCard from '../components/ProductCard';
 
@@ -22,6 +23,7 @@ export default function Profile() {
   const { dbUser } = useDbUser();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get('tab') || 'overview';
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
   
   const [orders, setOrders] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
@@ -225,38 +227,159 @@ export default function Profile() {
                     )}
                   </div>
                 )}
-
                 {tab === 'trials' && (
                   <div className="space-y-6">
-                    <h2 className="text-3xl font-black tracking-tight mb-8">Wardrobe Trials</h2>
+                    <div className="flex items-center justify-between mb-8">
+                      <h2 className="text-3xl font-black tracking-tight">Wardrobe Trials</h2>
+                    </div>
                     {bookings.length === 0 ? (
                       <div className="bento-card py-24 text-center">
                         <CalendarCheck className="mx-auto text-muted-foreground/30 mb-6" size={64} />
                         <p className="text-xl font-bold text-muted-foreground">No wardrobe trials scheduled.</p>
+                        <Link to="/trial-cart" className="mt-6 inline-block bg-foreground text-background font-bold px-8 py-3 rounded-full">Start a Trial</Link>
                       </div>
-                    ) : bookings.map((b) => (
-                      <div key={b.id} className="bento-card p-8 border-l-4 border-l-primary hover:shadow-xl transition-shadow">
-                        <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
-                          <div>
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 block">Booking ID</span>
-                            <span className="font-black text-2xl text-foreground font-mono">{b.booking_number}</span>
-                            <p className="text-sm text-muted-foreground font-medium mt-2">Date: {b.booking_date} | Time: {b.time_slot}</p>
+                    ) : bookings.map((b) => {
+                      const statusSteps = ['Pending', 'Confirmed', 'Assigned', 'Out For Trial', 'Trial Completed'];
+                      const currentStep = statusSteps.indexOf(b.status);
+                      const isActive = b.status === 'Out For Trial';
+                      const isCancellable = ['Pending', 'Confirmed'].includes(b.status);
+                      const isReturned = b.status === 'Returned';
+                      const isPurchased = b.status === 'Purchased';
+
+                      const handleCancel = () => {
+                        setCancellingId(b.id);
+                      };
+
+                      return (
+                        <div key={b.id} className="bento-card border border-border/50 hover:shadow-xl transition-shadow">
+                          {/* Header */}
+                          <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
+                            <div>
+                              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 block">Booking ID</span>
+                              <span className="font-black text-2xl text-foreground font-mono">{b.booking_number}</span>
+                              <p className="text-sm text-muted-foreground font-medium mt-1">{b.booking_date} · {b.time_slot}</p>
+                            </div>
+                            <span className={`text-xs px-4 py-2 rounded-full font-black uppercase tracking-widest ${
+                              b.status === 'Purchased' ? 'bg-green-500/20 text-green-700 dark:text-green-400' :
+                              b.status === 'Cancelled' ? 'bg-red-500/20 text-red-700 dark:text-red-400' :
+                              b.status === 'Returned' ? 'bg-muted text-muted-foreground' :
+                              isActive ? 'bg-primary/20 text-primary animate-pulse' : 'bg-cadmium/20 text-cadmium'
+                            }`}>{b.status}</span>
                           </div>
-                          <span className={`text-xs px-4 py-2 rounded-full font-black uppercase tracking-widest ${
-                            b.status === 'Confirmed' ? 'bg-green-500/20 text-green-700 dark:text-green-400' : 
-                            b.status === 'Cancelled' ? 'bg-red-500/20 text-red-700 dark:text-red-400' : 'bg-primary/20 text-primary'
-                          }`}>{b.status}</span>
-                        </div>
-                        <p className="text-sm font-medium text-muted-foreground bg-muted/20 p-4 rounded-2xl border border-border/50">{b.address}</p>
-                        <div className="flex justify-between items-center pt-6 mt-6 border-t border-border/50">
-                          <div>
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">Fee</span>
-                            <p className="font-black text-foreground text-xl font-mono">₹{b.fee}</p>
+
+                          {/* Status Stepper — only for active bookings */}
+                          {!['Cancelled', 'Returned', 'Purchased'].includes(b.status) && (
+                            <div className="mb-6">
+                              <div className="flex items-center gap-0">
+                                {statusSteps.map((step, i) => {
+                                  const done = i <= currentStep;
+                                  const isCurrent = i === currentStep;
+                                  return (
+                                    <div key={step} className="flex items-center flex-1 min-w-0">
+                                      <div className={`w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-xs font-black border-2 transition-colors ${
+                                        done ? 'bg-primary border-primary text-white' : 'border-border text-muted-foreground bg-background'
+                                      } ${isCurrent ? 'ring-2 ring-primary/30 ring-offset-1' : ''}`}>
+                                        {done ? '✓' : i + 1}
+                                      </div>
+                                      {i < statusSteps.length - 1 && (
+                                        <div className={`flex-1 h-0.5 mx-1 rounded transition-colors ${i < currentStep ? 'bg-primary' : 'bg-border'}`} />
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              <div className="flex justify-between mt-1">
+                                {statusSteps.map((step) => (
+                                  <span key={step} className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide flex-1 text-center first:text-left last:text-right">
+                                    {step.replace('Out For Trial', 'Active').replace('Trial Completed', 'Done')}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Address */}
+                          <p className="text-sm font-medium text-muted-foreground bg-muted/20 p-4 rounded-2xl border border-border/50 mb-4">{b.address}</p>
+
+                          {/* Fee row */}
+                          <div className="flex justify-between items-center pt-4 border-t border-border/50 mb-4">
+                            <div>
+                              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">Trial Fee</span>
+                              <p className="font-black text-foreground text-xl font-mono">₹{b.fee}</p>
+                            </div>
+                            <span className="text-xs font-bold px-4 py-2 bg-muted/50 rounded-xl text-foreground uppercase tracking-wider">Via {b.payment_method}</span>
                           </div>
-                          <span className="text-xs font-bold px-4 py-2 bg-muted/50 rounded-xl text-foreground uppercase tracking-wider">Via {b.payment_method}</span>
+
+                          {/* Trial fee explanation */}
+                          {!['Cancelled', 'Returned', 'Purchased'].includes(b.status) && (
+                            <p className="text-xs text-muted-foreground mb-4">
+                              ₹50 trial fee · adjusted against purchase if you keep items · fully refunded if you return all
+                            </p>
+                          )}
+
+                          {/* CTA buttons */}
+                          <div className="flex flex-wrap gap-3">
+                            {isActive && (
+                              <Link
+                                to={`/trial-session/${b.id}`}
+                                className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-black py-3 px-6 rounded-xl transition-colors text-sm"
+                              >
+                                <Timer size={16} /> Enter Trial Session
+                              </Link>
+                            )}
+                            {isCancellable && (
+                              <button
+                                onClick={handleCancel}
+                                className="flex items-center gap-2 border-2 border-border hover:border-cadmium text-muted-foreground hover:text-cadmium font-bold py-3 px-6 rounded-xl transition-colors text-sm"
+                              >
+                                <XCircle size={15} /> Cancel Trial
+                              </button>
+                            )}
+                            {isPurchased && (
+                              <div className="flex items-center gap-2 text-sm font-bold text-green-600">
+                                <CheckCircle2 size={16} /> Items purchased successfully
+                              </div>
+                            )}
+                            {isReturned && (
+                              <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
+                                <AlertCircle size={16} /> All items returned · refund processing
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
+
+                    {/* Cancel confirmation dialog */}
+                    <AnimatePresence>
+                      {cancellingId && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                          onClick={() => setCancellingId(null)}
+                        >
+                          <motion.div
+                            initial={{ scale: 0.9 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0.9 }}
+                            className="bento-card max-w-sm w-full border border-border/50 text-center"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <AlertCircle className="mx-auto text-cadmium mb-4" size={48} />
+                            <h3 className="text-xl font-black mb-2">Cancel Trial?</h3>
+                            <p className="text-sm text-muted-foreground mb-6">
+                              Your ₹50 trial fee will be refunded within 3–5 business days. This action cannot be undone.
+                            </p>
+                            <div className="flex gap-3">
+                              <button onClick={() => setCancellingId(null)} className="flex-1 border-2 border-border font-bold py-3 rounded-xl hover:bg-muted/30 transition-colors">Keep Trial</button>
+                              <button onClick={() => { const bid = cancellingId; setCancellingId(null); supabase.from('bookings').update({ status: 'Cancelled' }).eq('id', bid).then(() => { setBookings((prev: any[]) => prev.map((bk) => bk.id === bid ? { ...bk, status: 'Cancelled' } : bk)); toast.success('Trial cancelled. ₹50 will be refunded in 3-5 days.'); }); }} className="flex-1 bg-cadmium hover:bg-cadmium/90 text-white font-black py-3 rounded-xl transition-colors">Yes, Cancel</button>
+                            </div>
+                          </motion.div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )}
 

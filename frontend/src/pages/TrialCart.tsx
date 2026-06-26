@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
-import { Trash2, ArrowRight, ShoppingBag } from 'lucide-react';
+import { Trash2, ArrowRight, ShoppingBag, Shirt } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useUser } from '@clerk/clerk-react';
 import { useStore } from '../store/useStore';
 import { useDbUser } from '../hooks/useDbUser';
 import Logo from '../components/Logo';
+
+const MAX_TRIAL_ITEMS = 5;
 
 export default function TrialCart() {
   const { isSignedIn } = useUser();
@@ -27,6 +29,9 @@ export default function TrialCart() {
     return <div className="mt-32 text-center text-muted-foreground font-bold animate-pulse uppercase tracking-widest">Loading your trial cart...</div>;
   }
 
+  const count = trialCart.length;
+  const progressPct = (count / MAX_TRIAL_ITEMS) * 100;
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
@@ -37,13 +42,47 @@ export default function TrialCart() {
         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
           <Logo size={24} className="text-primary" />
         </div>
-        <h1 className="text-3xl font-black tracking-tight">Home Trial Cart <span className="text-muted-foreground font-medium text-2xl">({trialCart.length})</span></h1>
+        <h1 className="text-3xl font-black tracking-tight">Home Trial Cart <span className="text-muted-foreground font-medium text-2xl">({count})</span></h1>
       </div>
-      <p className="text-base text-muted-foreground mb-8">
+      <p className="text-base text-muted-foreground mb-6">
         Items in your trial cart are separate from your shopping cart. Book a home trial session to try these products comfortably at home.
       </p>
 
-      {trialCart.length === 0 ? (
+      {/* Trial Session Progress Bar */}
+      <div className="bento-card border border-border/50 mb-8 !p-5">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Shirt size={16} className="text-primary" />
+            <span className="text-sm font-bold text-foreground">Trial Session Capacity</span>
+          </div>
+          <span className={`text-sm font-black font-mono ${count >= MAX_TRIAL_ITEMS ? 'text-cadmium' : 'text-primary'}`}>{count} / {MAX_TRIAL_ITEMS}</span>
+        </div>
+        <div className="w-full h-2.5 bg-muted/40 rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full ${count >= MAX_TRIAL_ITEMS ? 'bg-cadmium' : 'bg-primary'}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPct}%` }}
+            transition={{ type: 'spring', stiffness: 80, damping: 20 }}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground mt-2 font-medium">
+          {count >= MAX_TRIAL_ITEMS
+            ? 'Maximum items reached. Remove an item to add another.'
+            : `You can add ${MAX_TRIAL_ITEMS - count} more item${MAX_TRIAL_ITEMS - count !== 1 ? 's' : ''} to this trial session.`}
+        </p>
+        {/* Trial fee info */}
+        <div className="mt-4 pt-4 border-t border-border/50 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Trial Fee</p>
+            <p className="text-lg font-black font-mono text-foreground">₹50</p>
+          </div>
+          <p className="text-xs text-muted-foreground max-w-xs text-right">
+            ₹50 trial fee is adjusted against your purchase price if you keep any items. Fully refunded if you return everything.
+          </p>
+        </div>
+      </div>
+
+      {count === 0 ? (
         <div className="text-center py-20 bento-card border border-border/50">
           <ShoppingBag className="mx-auto text-muted-foreground/30 mb-6" size={64} />
           <h2 className="text-2xl font-bold mb-2">No items in trial cart</h2>
@@ -59,8 +98,11 @@ export default function TrialCart() {
                 key={item.id} 
                 className="bento-card !p-4 sm:!p-6 flex gap-4 sm:gap-6 shadow-sm border-l-4 border-l-primary group"
               >
-                <div className="w-20 h-28 sm:w-24 sm:h-32 shrink-0 rounded-xl overflow-hidden bg-muted/30">
+                <div className="w-20 h-28 sm:w-24 sm:h-32 shrink-0 rounded-xl overflow-hidden bg-muted/30 relative">
                   <img src={item.product?.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <span className="absolute bottom-1 left-1 bg-primary text-white text-[9px] uppercase font-black px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Shirt size={8} /> Trial
+                  </span>
                 </div>
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
