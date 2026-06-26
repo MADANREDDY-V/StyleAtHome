@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Heart, ShoppingBag, Menu, X, Shield } from 'lucide-react';
-import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
+import { Search, Heart, ShoppingBag, Menu, X, Shield, User } from 'lucide-react';
+import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import { useDbUser } from '../hooks/useDbUser';
@@ -165,9 +165,22 @@ export default function Header() {
                     </motion.span>
                   )}
                 </Link>
-                <div className="ml-2 pl-2 border-l border-border/50 flex items-center justify-center">
-                  <UserButton afterSignOutUrl="/" appearance={{ elements: { userButtonAvatarBox: "w-8 h-8 ring-2 ring-primary/20" } }} />
-                </div>
+                {/* Custom profile avatar — routes to /profile */}
+                <Link
+                  to="/profile"
+                  className="ml-2 pl-2 border-l border-border/50 flex items-center gap-2 group"
+                  title="My Profile"
+                >
+                  {user?.imageUrl ? (
+                    <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-primary/20 group-hover:ring-primary/50 transition-all">
+                      <img src={user.imageUrl} alt={user.fullName || 'Profile'} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <User size={16} className="text-primary" />
+                    </div>
+                  )}
+                </Link>
               </div>
             </SignedIn>
 
@@ -220,6 +233,13 @@ export default function Header() {
                     <Shield size={16} /> Admin Console
                   </Link>
                 )}
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 py-3 px-4 rounded-xl text-base font-bold text-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <User size={16} /> My Profile
+                </Link>
               </div>
             </div>
           </motion.div>

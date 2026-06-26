@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { useUser, UserProfile } from '@clerk/clerk-react';
+import { useUser, UserProfile, useClerk } from '@clerk/clerk-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CalendarCheck, Heart, MapPin, Settings, Package, Activity, Timer, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { CalendarCheck, Heart, MapPin, Settings, Package, Activity, Timer, CheckCircle2, XCircle, AlertCircle, LogOut, ShoppingBag, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useDbUser } from '../hooks/useDbUser';
 import toast from 'react-hot-toast';
@@ -10,20 +10,22 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ProductCard from '../components/ProductCard';
 
 const TABS = [
-  { id: 'overview', label: 'Command Center', icon: Activity },
-  { id: 'orders', label: 'Logistics', icon: Package },
-  { id: 'trials', label: 'Wardrobe Trials', icon: CalendarCheck },
-  { id: 'wishlist', label: 'Curations', icon: Heart },
-  { id: 'addresses', label: 'Destinations', icon: MapPin },
-  { id: 'settings', label: 'Preferences', icon: Settings }
+  { id: 'overview', label: 'Overview', icon: Activity },
+  { id: 'orders', label: 'My Orders', icon: Package },
+  { id: 'trials', label: 'Trial Bookings', icon: CalendarCheck },
+  { id: 'wishlist', label: 'Wishlist', icon: Heart },
+  { id: 'addresses', label: 'Addresses', icon: MapPin },
+  { id: 'settings', label: 'Account Settings', icon: Settings }
 ];
 
 export default function Profile() {
   const { isSignedIn, user: clerkUser } = useUser();
+  const { signOut } = useClerk();
   const { dbUser } = useDbUser();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get('tab') || 'overview';
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
   
   const [orders, setOrders] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
@@ -80,21 +82,65 @@ export default function Profile() {
     >
       <div className="flex flex-col lg:flex-row gap-8">
         
-        {/* Sidebar */}
-        <div className="w-full lg:w-72 shrink-0 space-y-6">
-          <div className="bento-card flex flex-col items-center text-center p-8 group">
-            <div className="relative mb-6">
+        {/* ── Sidebar ── */}
+        <div className="w-full lg:w-72 shrink-0 space-y-4">
+
+          {/* Avatar card */}
+          <div className="bento-card flex flex-col items-center text-center p-8 group relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+            <div className="relative mb-5 z-10">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
-              <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-primary/20 bg-muted/30 relative z-10 group-hover:scale-105 transition-transform duration-500">
-                <img src={clerkUser?.imageUrl} alt={clerkUser?.fullName || 'User'} className="w-full h-full object-cover" />
-              </div>
+              {clerkUser?.imageUrl ? (
+                <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-primary/20 group-hover:ring-primary/40 bg-muted/30 relative z-10 transition-all duration-500 group-hover:scale-105">
+                  <img src={clerkUser.imageUrl} alt={clerkUser.fullName || 'User'} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-primary/10 ring-4 ring-primary/20 flex items-center justify-center relative z-10">
+                  <User size={40} className="text-primary" />
+                </div>
+              )}
             </div>
-            <h1 className="text-xl font-black text-foreground tracking-tight">{clerkUser?.fullName}</h1>
-            <p className="text-sm font-medium text-muted-foreground mt-1">{clerkUser?.primaryEmailAddress?.emailAddress}</p>
+            <h1 className="text-xl font-black text-foreground tracking-tight z-10 relative">
+              {clerkUser?.fullName || clerkUser?.firstName || 'User'}
+            </h1>
+            <p className="text-sm font-medium text-muted-foreground mt-1 z-10 relative">
+              {clerkUser?.primaryEmailAddress?.emailAddress}
+            </p>
+            {dbUser?.mobile && !dbUser.mobile.startsWith('t') && (
+              <p className="text-xs text-muted-foreground font-mono mt-1 z-10 relative">{dbUser.mobile}</p>
+            )}
+            {clerkUser?.createdAt && (
+              <p className="text-xs text-muted-foreground/60 mt-3 z-10 relative">
+                Member since {new Date(clerkUser.createdAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+              </p>
+            )}
           </div>
 
-          <div className="bento-card p-4">
-            <div className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-visible gap-2 scrollbar-hide">
+          {/* Quick stats */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: 'Orders', value: orders.length, icon: ShoppingBag, tabId: 'orders' },
+              { label: 'Trials', value: bookings.length, icon: CalendarCheck, tabId: 'trials' },
+              { label: 'Wishlist', value: wishlist.length, icon: Heart, tabId: 'wishlist' },
+            ].map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <button
+                  key={stat.label}
+                  onClick={() => setTab(stat.tabId)}
+                  className="bento-card !p-3 text-center hover:border-primary/40 border border-transparent transition-all group"
+                >
+                  <Icon size={16} className="mx-auto mb-1 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <p className="text-xl font-black font-mono">{stat.value}</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">{stat.label}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Nav tabs */}
+          <div className="bento-card p-3">
+            <div className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-visible gap-1 scrollbar-hide">
               {TABS.map((t) => {
                 const Icon = t.icon;
                 const isActive = tab === t.id;
@@ -102,20 +148,33 @@ export default function Profile() {
                   <button
                     key={t.id}
                     onClick={() => setTab(t.id)}
-                    className={`flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold transition-all whitespace-nowrap lg:whitespace-normal group relative overflow-hidden ${
-                      isActive 
-                        ? 'bg-primary text-white shadow-md' 
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap lg:whitespace-normal group relative overflow-hidden ${
+                      isActive
+                        ? 'bg-primary text-white shadow-sm'
                         : 'text-muted-foreground hover:bg-muted/30 hover:text-foreground'
                     }`}
                   >
                     {isActive && <motion.div layoutId="tab-indicator" className="absolute inset-0 bg-primary -z-10" />}
-                    <Icon size={18} className={isActive ? 'text-white' : 'group-hover:text-primary transition-colors'} />
+                    <Icon size={16} className={isActive ? 'text-white' : 'group-hover:text-primary transition-colors'} />
                     {t.label}
                   </button>
-                )
+                );
               })}
             </div>
           </div>
+
+          {/* Sign out */}
+          <button
+            onClick={async () => {
+              setSigningOut(true);
+              await signOut({ redirectUrl: '/' });
+            }}
+            disabled={signingOut}
+            className="w-full flex items-center justify-center gap-2 border-2 border-border hover:border-cadmium text-muted-foreground hover:text-cadmium font-bold py-3 px-6 rounded-2xl transition-all text-sm disabled:opacity-50"
+          >
+            <LogOut size={15} />
+            {signingOut ? 'Signing out...' : 'Sign Out'}
+          </button>
         </div>
 
         {/* Content Area */}
@@ -432,7 +491,7 @@ export default function Profile() {
 
                 {tab === 'settings' && (
                   <div>
-                    <h2 className="text-3xl font-black tracking-tight mb-8">Preferences</h2>
+                    <h2 className="text-3xl font-black tracking-tight mb-8">Account Settings</h2>
                     <div className="bento-card overflow-hidden !p-0">
                       <div className="clerk-profile-container flex justify-center p-4 sm:p-12">
                         <UserProfile appearance={{
