@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  ArrowRight, TrendingUp, ShoppingBag, ShieldCheck, 
-  RefreshCcw, Star, Home as HomeIcon, Truck, Users, Clock 
+  ArrowRight, ShoppingBag, ShieldCheck, 
+  RefreshCcw, Star, Home as HomeIcon, Truck, Users 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
