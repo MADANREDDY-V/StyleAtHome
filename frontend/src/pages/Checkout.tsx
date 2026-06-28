@@ -131,7 +131,10 @@ export default function Checkout() {
       toast.error('Requisition is empty');
       return;
     }
-    if (!dbUser) return;
+    if (!dbUser) {
+      toast.error('Authentication error: User data not found.');
+      return;
+    }
 
     setLoading(true);
 
