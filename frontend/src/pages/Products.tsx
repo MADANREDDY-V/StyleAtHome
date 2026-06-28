@@ -77,10 +77,10 @@ export default function Products() {
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mt-16 sm:mt-24"
+      className="mt-16 sm:mt-24 max-w-[1600px] mx-auto px-6 mb-24"
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <h1 className="text-3xl font-black tracking-tight">{title}</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{title}</h1>
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
@@ -93,15 +93,15 @@ export default function Products() {
         </select>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="md:w-64 flex-shrink-0">
+      <div className="flex flex-col md:flex-row gap-[20px]">
+        <div className="w-full md:w-[260px] flex-shrink-0 md:sticky md:top-24 self-start">
           <ProductFilters filters={filters} onChange={setFilters} brands={brands} categories={categories} />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {loading ? (
              <LoadingSpinner />
           ) : products.length === 0 ? (
-            <div className="bento-card flex flex-col items-center justify-center py-32 text-center border border-border/50">
+            <div className="bento-card flex flex-col items-center justify-center py-32 text-center border border-border/50 bg-card rounded-2xl">
               <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mb-4">
                 <ShoppingBag className="text-muted-foreground/40" size={32} />
               </div>
@@ -122,19 +122,20 @@ export default function Products() {
                 hidden: { opacity: 0 },
                 show: {
                   opacity: 1,
-                  transition: { staggerChildren: 0.1 }
+                  transition: { staggerChildren: 0.05 }
                 }
               }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12"
+              className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-x-[20px] gap-y-[16px]"
             >
               {products.map((p) => (
                 <motion.div 
                   key={p.id} 
                   variants={{
-                    hidden: { opacity: 0, y: 30 },
-                    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 20 } }
+                    hidden: { opacity: 0, scale: 0.95 },
+                    show: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 100, damping: 20 } }
                   }}
                   layout
+                  className="h-full"
                 >
                   <ProductCard product={p} />
                 </motion.div>
