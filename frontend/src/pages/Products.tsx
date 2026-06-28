@@ -125,7 +125,7 @@ export default function Products() {
                   transition: { staggerChildren: 0.05 }
                 }
               }}
-              className="grid grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-x-3 gap-y-4 md:gap-x-[20px] md:gap-y-[16px]"
+              className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-x-3 gap-y-4 md:gap-x-[20px] md:gap-y-[16px]"
             >
               {products.map((p) => (
                 <motion.div 
