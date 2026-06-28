@@ -62,8 +62,8 @@ export default function Home() {
   return (
     <div className="w-full relative overflow-x-hidden bg-[#F9F6F1] font-sans">
       
-      {/* 1. ULTRA-PREMIUM HERO (100VH) */}
-      <section className="relative w-full h-[100dvh] min-h-[700px] flex items-center justify-center overflow-hidden">
+      {/* 1. ULTRA-PREMIUM HERO */}
+      <section className="relative w-full min-h-[85vh] lg:min-h-[800px] flex items-center justify-center overflow-hidden pt-24 lg:pt-32">
         {/* Animated Mesh Gradient Background */}
         <div className="absolute inset-0 pointer-events-none opacity-40">
           <motion.div 
@@ -173,20 +173,19 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Horizontal Scroll Area */}
-        <div className="flex overflow-x-auto gap-4 md:gap-6 px-6 sm:px-8 lg:px-12 pb-10 snap-x scrollbar-hide w-full">
-          {[
-            { name: "Men", img: "https://images.unsplash.com/photo-1617137968427-85924c800a22?q=80&w=800&auto=format&fit=crop" },
-            { name: "Women", img: "https://images.unsplash.com/photo-1485230895905-ef0e1bb425c2?q=80&w=800&auto=format&fit=crop" },
-            { name: "Accessories", img: "https://images.unsplash.com/photo-1509319117193-57bab727e09d?q=80&w=800&auto=format&fit=crop" },
-            { name: "Footwear", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop" },
-            { name: "Kids", img: "https://images.unsplash.com/photo-1519238396522-870631622830?q=80&w=800&auto=format&fit=crop" },
-          ].map((cat, i) => (
-            <Link 
-              key={i} 
-              to={`/products?section=${cat.name === 'Kids' || cat.name === 'Footwear' || cat.name === 'Accessories' ? '' : cat.name}`} 
-              className="group relative min-w-[280px] w-[280px] md:min-w-[320px] md:w-[320px] aspect-[3/4] snap-center overflow-hidden rounded-[1.5rem]"
-            >
+        {/* 3-Column Grid Area */}
+        <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 pb-10 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+            {[
+              { name: "Men", img: "https://images.unsplash.com/photo-1617137968427-85924c800a22?q=80&w=800&auto=format&fit=crop" },
+              { name: "Women", img: "https://images.unsplash.com/photo-1485230895905-ef0e1bb425c2?q=80&w=800&auto=format&fit=crop" },
+              { name: "Kids", img: "https://images.unsplash.com/photo-1519238396522-870631622830?q=80&w=800&auto=format&fit=crop" },
+            ].map((cat, i) => (
+              <Link 
+                key={i} 
+                to={`/products?section=${cat.name}`} 
+                className="group relative w-full aspect-[4/5] md:aspect-[3/4] overflow-hidden rounded-[1.5rem]"
+              >
               <img 
                 src={cat.img} 
                 alt={cat.name} 
@@ -199,6 +198,7 @@ export default function Home() {
               </div>
             </Link>
           ))}
+          </div>
         </div>
       </section>
 
@@ -286,24 +286,27 @@ export default function Home() {
           <motion.div 
             animate={{ x: ["0%", "-50%"] }}
             transition={{ duration: 25, ease: "linear", repeat: Infinity }}
-            className="flex flex-none gap-12 sm:gap-24 px-6 items-center"
+            className="flex flex-none gap-16 sm:gap-28 px-6 items-center"
           >
             {[...stores, ...stores, ...stores].map((store, i) => (
-              <div key={i} className="flex-none opacity-40 hover:opacity-100 grayscale hover:grayscale-0 transition-all duration-300">
+              <div key={i} className="flex-none flex flex-col items-center gap-3 transition-transform duration-300 hover:scale-110">
                 {store.logo_url ? (
-                   <img src={store.logo_url} alt={store.name} className="h-10 md:h-12 object-contain" />
+                   <img src={store.logo_url} alt={store.name} className="h-14 md:h-20 object-contain" />
                 ) : (
-                   <span className="text-3xl font-black text-[#3D1202]">{store.name}</span>
+                   <div className="h-14 md:h-20 w-14 md:w-20 bg-[#F9F6F1] border border-[#3D1202]/10 rounded-2xl flex items-center justify-center">
+                     <span className="text-2xl font-black text-[#3D1202]">{store.name.charAt(0)}</span>
+                   </div>
                 )}
+                <span className="text-sm font-bold text-[#3D1202] uppercase tracking-wider">{store.name}</span>
               </div>
             ))}
             {/* Fallbacks if stores are empty */}
             {stores.length === 0 && [...Array(3)].fill(0).map((_, i) => (
-              <div key={`fallback-${i}`} className="flex gap-24 items-center opacity-40">
-                <span className="text-3xl font-black text-[#3D1202]">ZARA</span>
-                <span className="text-3xl font-black text-[#3D1202]">H&M</span>
-                <span className="text-3xl font-black text-[#3D1202]">COS</span>
-                <span className="text-3xl font-black text-[#3D1202]">NIKE</span>
+              <div key={`fallback-${i}`} className="flex gap-28 items-center">
+                <div className="flex flex-col items-center gap-3"><span className="text-3xl font-black text-[#3D1202]">ZARA</span><span className="text-sm font-bold text-[#3D1202]">ZARA</span></div>
+                <div className="flex flex-col items-center gap-3"><span className="text-3xl font-black text-[#3D1202]">H&M</span><span className="text-sm font-bold text-[#3D1202]">H&M</span></div>
+                <div className="flex flex-col items-center gap-3"><span className="text-3xl font-black text-[#3D1202]">COS</span><span className="text-sm font-bold text-[#3D1202]">COS</span></div>
+                <div className="flex flex-col items-center gap-3"><span className="text-3xl font-black text-[#3D1202]">NIKE</span><span className="text-sm font-bold text-[#3D1202]">NIKE</span></div>
               </div>
             ))}
           </motion.div>
