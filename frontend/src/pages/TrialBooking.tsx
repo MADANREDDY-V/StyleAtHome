@@ -51,6 +51,7 @@ export default function TrialBooking() {
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
+      if ((window as any).Razorpay) return resolve(true);
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.onload = () => resolve(true);
@@ -117,7 +118,7 @@ export default function TrialBooking() {
              });
              const verifyData = await verifyRes.json();
              if (verifyData.success) {
-                const bookingNumber = 'TRL-' + crypto.randomUUID().split('-')[0].toUpperCase();
+                const bookingNumber = 'TRL-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15)).split('-')[0].toUpperCase();
 
                 const { error: bookingError } = await supabase.from('bookings').insert({
                   booking_number: bookingNumber,
@@ -149,9 +150,9 @@ export default function TrialBooking() {
            }
         },
         prefill: {
-          name: dbUser.name || '',
-          email: dbUser.email || '',
-          contact: dbUser.mobile || ''
+          name: dbUser.name || 'Customer',
+          email: dbUser.email || 'guest@example.com',
+          contact: dbUser.mobile || '9999999999'
         },
         theme: { color: '#3D1202' },
         modal: {

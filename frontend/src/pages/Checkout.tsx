@@ -65,6 +65,7 @@ export default function Checkout() {
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
+      if ((window as any).Razorpay) return resolve(true);
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.onload = () => resolve(true);
@@ -75,7 +76,7 @@ export default function Checkout() {
 
   const createSupabaseOrder = async (finalPaymentMethod: string) => {
     if (!dbUser) throw new Error('User not authenticated');
-    const orderNumber = 'ORD-' + crypto.randomUUID().split('-')[0].toUpperCase();
+    const orderNumber = 'ORD-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15)).split('-')[0].toUpperCase();
     
     const { data: order, error: orderError } = await supabase.from('orders').insert({
       order_number: orderNumber,
@@ -182,9 +183,9 @@ export default function Checkout() {
              }
           },
           prefill: {
-            name: address.name,
-            email: dbUser.email || '',
-            contact: address.mobile
+            name: address.name || 'Customer',
+            email: dbUser.email || 'guest@example.com',
+            contact: address.mobile || '9999999999'
           },
           theme: { color: '#3D1202' },
           modal: {
