@@ -153,7 +153,7 @@ export default function Checkout() {
         const rzpOrder = await orderRes.json();
 
         const options = {
-          key: 'rzp_test_YOUR_KEY', // REPLACE THIS WITH YOUR RAZORPAY TEST KEY ID
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY',
           amount: rzpOrder.amount,
           currency: rzpOrder.currency,
           name: 'StyleAtHome',
