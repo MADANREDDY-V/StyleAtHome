@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Heart, ShoppingBag, Shirt, Truck, ChevronLeft, Star, Send } from 'lucide-react';
+import { Heart, ShoppingBag, Shirt, Truck, ChevronLeft, Star, Send, Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../store/useStore';
@@ -29,6 +29,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [reviewText, setReviewText] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
+  const [reviewImage, setReviewImage] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
@@ -85,7 +86,7 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (dbUser) {
-      addToCart(dbUser.id, product.id);
+      addToCart(dbUser.id, product.id, 1, selectedSize, selectedColor);
       toast.success('Added to cart');
     } else if (isUserLoading) {
       toast.error('Please wait, syncing your profile...');
@@ -110,16 +111,21 @@ export default function ProductDetail() {
     if (!dbUser) { toast.error("Sign in to write a review"); return; }
     if (!reviewText.trim()) { toast.error("Write something first"); return; }
     setSubmittingReview(true);
-    const { error } = await supabase.from('reviews').insert({
+    const payload: any = {
       product_id: Number(id),
       user_id: dbUser.id,
       rating: reviewRating,
       comment: reviewText.trim(),
-    });
+    };
+    if (reviewImage.trim()) {
+      payload.image_url = reviewImage.trim();
+    }
+    const { error } = await supabase.from('reviews').insert(payload);
     if (!error) {
       toast.success('Review submitted');
       setReviewText('');
       setReviewRating(5);
+      setReviewImage('');
       // Refetch reviews
       const { data } = await supabase.from('reviews').select('*, user:users(name)').eq('product_id', id).order('created_at', { ascending: false });
       if (data) setReviews(data);
@@ -294,6 +300,16 @@ export default function ProductDetail() {
             rows={3}
             className="w-full bg-muted/20 border-2 border-transparent focus:border-primary rounded-2xl px-4 py-3 text-sm font-medium transition-colors outline-none resize-none"
           />
+          <div className="flex items-center gap-3 bg-muted/20 border-2 border-transparent focus-within:border-primary rounded-2xl px-4 py-3 transition-colors">
+            <ImageIcon size={18} className="text-muted-foreground" />
+            <input 
+              type="text" 
+              placeholder="Paste image URL (optional)" 
+              value={reviewImage}
+              onChange={e => setReviewImage(e.target.value)}
+              className="bg-transparent border-none outline-none text-sm w-full font-medium"
+            />
+          </div>
           <button
             onClick={handleSubmitReview}
             disabled={submittingReview}
@@ -318,6 +334,11 @@ export default function ProductDetail() {
                   <span className="text-xs text-muted-foreground font-medium">{new Date(r.created_at).toLocaleDateString()}</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{r.comment}</p>
+                {r.image_url && (
+                  <div className="mt-4 w-24 h-24 rounded-xl overflow-hidden border border-border/50 cursor-zoom-in">
+                    <img src={r.image_url} alt="Review attachment" className="w-full h-full object-cover hover:scale-110 transition-transform" />
+                  </div>
+                )}
               </div>
             ))}
           </div>

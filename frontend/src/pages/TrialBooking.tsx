@@ -157,7 +157,7 @@ export default function TrialBooking() {
                     ))}
                     <div className="flex justify-between items-center p-4 bg-primary/5 rounded-xl border border-primary/20 mt-4">
                       <p className="text-sm font-bold text-primary">Home Trial Booking Fee</p>
-                      <p className="font-black text-primary font-mono">₹50</p>
+                      <p className="font-black text-primary font-mono">₹100</p>
                     </div>
                   </div>
                 )}

@@ -1,97 +1,105 @@
-import { useSearchParams, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { CheckCircle2, Package, ArrowRight, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { CheckCircle, ShoppingBag, ArrowRight } from 'lucide-react';
+import Confetti from 'react-confetti';
+import Logo from '../components/Logo';
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const orderId = searchParams.get('orderId');
   const paymentId = searchParams.get('paymentId');
-  const amount = searchParams.get('amount');
+  const isTrial = searchParams.get('isTrial') === 'true';
 
-  // Calculate estimated delivery (e.g., 3-5 days from now)
-  const deliveryDate = new Date();
-  deliveryDate.setDate(deliveryDate.getDate() + 4);
-  const formattedDate = deliveryDate.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric'
-  });
+  const [windowDimension, setWindowDimension] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+  useEffect(() => {
+    if (!orderId) {
+      navigate('/');
+    }
+    const handleResize = () => setWindowDimension({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [orderId, navigate]);
+
+  if (!orderId) return null;
 
   return (
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="min-h-screen bg-[#F9F6F1] flex flex-col items-center justify-center pt-24 pb-12 px-4 sm:px-6"
+      className="min-h-[80vh] flex flex-col items-center justify-center px-4 mt-24 sm:mt-32"
     >
-      <div className="max-w-2xl w-full bg-white rounded-[2rem] shadow-2xl p-8 md:p-12 overflow-hidden relative">
-        {/* Success Header */}
-        <div className="flex flex-col items-center text-center mb-10 relative z-10">
-          <motion.div 
-            initial={{ scale: 0, rotate: -45 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-            className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mb-6"
-          >
-            <CheckCircle className="text-green-600" size={48} />
-          </motion.div>
-          <h1 className="text-4xl md:text-5xl font-black text-[#3D1202] tracking-tight mb-4">
-            {paymentId === 'COD' ? 'Order Confirmed!' : 'Payment Successful!'}
-          </h1>
-          <p className="text-lg text-[#3D1202]/70 font-medium">
-            Thank you for shopping with StyleAtHome. Your premium lifestyle upgrade is on its way.
-          </p>
-        </div>
+      <Confetti
+        width={windowDimension.width}
+        height={windowDimension.height}
+        recycle={false}
+        numberOfPieces={400}
+        gravity={0.15}
+        colors={['#FF5722', '#E64A19', '#FBE9E7', '#4CAF50', '#81C784']}
+      />
 
-        {/* Order Details Bento Box */}
+      <div className="text-center max-w-2xl mx-auto w-full">
+        <Logo size={48} className="text-primary mb-8 mx-auto" />
+        
         <motion.div 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="bg-[#F9F6F1] rounded-2xl p-6 md:p-8 mb-10 border border-black/5"
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 150, damping: 20, delay: 0.1 }}
+          className="w-32 h-32 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-8 relative"
         >
-          <h3 className="font-bold text-sm uppercase tracking-widest text-[#3D1202]/50 mb-6">Order Details</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-[#3D1202]/50 mb-1">Order ID</p>
-              <p className="font-black text-lg text-[#3D1202]">{orderId || 'N/A'}</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-[#3D1202]/50 mb-1">Payment Reference</p>
-              <p className="font-black text-lg text-[#3D1202] font-mono">
-                {paymentId === 'COD' ? 'Cash on Delivery' : (paymentId || 'N/A')}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-[#3D1202]/50 mb-1">Amount Paid</p>
-              <p className="font-black text-2xl text-[#FF8A00]">₹{parseFloat(amount || '0').toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-[#3D1202]/50 mb-1">Estimated Delivery</p>
-              <p className="font-bold text-lg text-[#3D1202]">{formattedDate}</p>
-            </div>
-          </div>
+          <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping" />
+          <CheckCircle2 size={64} />
         </motion.div>
 
-        {/* Actions */}
-        <motion.div 
+        <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="flex flex-col sm:flex-row items-center gap-4"
+          transition={{ delay: 0.3 }}
         >
-          <Link 
-            to="/products" 
-            className="w-full sm:flex-1 bg-[#3D1202] hover:bg-[#FF8A00] text-white text-center py-4 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 group shadow-lg"
-          >
-            <ShoppingBag size={18} /> Continue Shopping 
-          </Link>
-          <Link 
-            to="/profile?tab=orders" 
-            className="w-full sm:flex-1 bg-white border-2 border-[#3D1202]/10 hover:border-[#3D1202] text-[#3D1202] text-center py-4 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
-          >
-            View My Orders <ArrowRight size={18} />
-          </Link>
+          <h1 className="text-4xl sm:text-5xl font-black mb-4 tracking-tight">Order Placed Successfully!</h1>
+          
+          <div className="bg-muted/30 border border-border/50 rounded-3xl p-8 mb-10 inline-block text-left w-full max-w-md backdrop-blur-sm">
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Order Manifest</p>
+            <p className="text-2xl font-black font-mono text-foreground mb-6">{orderId}</p>
+            
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Transaction Ref</p>
+            <p className="text-sm font-medium font-mono text-foreground mb-6">{paymentId || 'N/A'}</p>
+
+            <div className="bg-primary/10 rounded-2xl p-4 flex items-start gap-4">
+              <Package className="text-primary mt-1 shrink-0" size={20} />
+              <div>
+                <p className="font-black text-primary text-sm uppercase tracking-widest">Estimated Delivery</p>
+                <p className="text-sm text-primary/80 font-medium mt-1">3 - 7 Business Days</p>
+              </div>
+            </div>
+
+            {isTrial && (
+              <div className="bg-cadmium/10 rounded-2xl p-4 flex items-start gap-4 mt-4">
+                <Home className="text-cadmium mt-1 shrink-0" size={20} />
+                <div>
+                  <p className="font-black text-cadmium text-sm uppercase tracking-widest">Home Trial Success</p>
+                  <p className="text-sm text-cadmium/80 font-medium mt-1">Thank you for using the Home Trial service!</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link 
+              to="/products" 
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-foreground text-background hover:bg-primary font-black py-4 px-8 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+            >
+              Continue Shopping
+            </Link>
+            <Link 
+              to="/profile?tab=orders" 
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-transparent border-2 border-border hover:border-foreground text-foreground font-black py-4 px-8 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              View My Orders <ArrowRight size={18} />
+            </Link>
+          </div>
         </motion.div>
       </div>
     </motion.div>

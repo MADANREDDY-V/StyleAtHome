@@ -9,7 +9,7 @@ interface StoreState {
   fetchCart: (userId: number) => Promise<void>;
   fetchTrialCart: (userId: number) => Promise<void>;
   fetchWishlist: (userId: number) => Promise<void>;
-  addToCart: (userId: number, productId: number, quantity?: number) => Promise<void>;
+  addToCart: (userId: number, productId: number, quantity?: number, size?: string, color?: string) => Promise<void>;
   addToTrialCart: (userId: number, productId: number, size?: string, color?: string) => Promise<void>;
   removeFromCart: (cartItemId: number) => Promise<void>;
   updateCartQuantity: (cartItemId: number, userId: number, quantity: number) => Promise<void>;
@@ -46,7 +46,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }
   },
 
-  addToCart: async (userId, productId, quantity = 1) => {
+  addToCart: async (userId, productId, quantity = 1, size, color) => {
     const currentCart = get().cart;
     const existing = currentCart.find(item => item.product_id === productId);
 
@@ -59,7 +59,7 @@ export const useStore = create<StoreState>((set, get) => ({
     } else {
       const { error } = await supabase
         .from('cart_items')
-        .insert({ user_id: userId, product_id: productId, quantity });
+        .insert({ user_id: userId, product_id: productId, quantity, size, color });
       if (!error) get().fetchCart(userId);
     }
   },

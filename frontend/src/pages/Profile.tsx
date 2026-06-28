@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useUser, UserProfile, useClerk } from '@clerk/clerk-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CalendarCheck, Heart, MapPin, Settings, Package, Activity, Timer, CheckCircle2, XCircle, AlertCircle, LogOut, ShoppingBag, User } from 'lucide-react';
+import { CalendarCheck, Heart, MapPin, Settings, Package, Activity, Timer, CheckCircle2, XCircle, AlertCircle, LogOut, ShoppingBag, User, ChevronRight, Home } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useDbUser } from '../hooks/useDbUser';
 import toast from 'react-hot-toast';
@@ -40,7 +40,14 @@ export default function Profile() {
       const promises = [];
       
       if (['orders', 'overview'].includes(tab)) {
-        promises.push(supabase.from('orders').select('*').eq('user_id', dbUser!.id).order('created_at', { ascending: false }).then((r) => setOrders(r.data || [])));
+        promises.push(
+          supabase
+            .from('orders')
+            .select('*, items:order_items(*, product:products(id, name, brand, image_url, store:stores(id, name, slug, logo_url))), trial_booking:bookings(id, booking_date, time_slot, booking_number, fee)')
+            .eq('user_id', dbUser!.id)
+            .order('created_at', { ascending: false })
+            .then((r) => setOrders(r.data || []))
+        );
       }
       if (['trials', 'overview'].includes(tab)) {
         promises.push(supabase.from('bookings').select('*').eq('user_id', dbUser!.id).order('created_at', { ascending: false }).then((r) => setBookings(r.data || [])));
@@ -223,26 +230,58 @@ export default function Profile() {
                       )
                     })}
                     
-                    {/* Live Status Indicator Bento block */}
-                    <div className="col-span-1 md:col-span-2 xl:col-span-3 bento-card relative overflow-hidden bg-bean text-white p-8 sm:p-12">
-                       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/30 via-transparent to-transparent opacity-60" />
-                       <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-                         <div>
-                           <div className="flex items-center gap-3 mb-4">
-                             <span className="relative flex h-3 w-3">
-                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cadmium opacity-75"></span>
-                               <span className="relative inline-flex rounded-full h-3 w-3 bg-cadmium"></span>
-                             </span>
-                             <span className="text-xs font-bold uppercase tracking-widest text-cadmium">System Live</span>
-                           </div>
-                           <h3 className="text-3xl font-black tracking-tight">Enterprise Standing: Premium</h3>
-                           <p className="text-white/60 font-medium mt-2 max-w-lg">Your account has priority access to upcoming collections and expedited home trial delivery slots.</p>
-                         </div>
-                         <div className="shrink-0 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10 w-full md:w-auto">
-                            <div className="text-sm font-bold text-white/50 mb-1">Total Lifetime Value</div>
-                            <div className="text-4xl font-black font-mono">₹{orders.reduce((acc, curr) => acc + curr.total_amount, 0).toLocaleString()}</div>
-                         </div>
-                       </div>
+                    {/* Recommended Products & Recently Visited Stores */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 col-span-1 md:col-span-2 xl:col-span-3">
+                      <div className="bento-card border border-border/50 bg-background/50 backdrop-blur-md">
+                        <div className="flex justify-between items-center mb-6">
+                          <h3 className="text-lg font-black tracking-tight">Recent Orders</h3>
+                          <Link to="/profile?tab=orders" className="text-xs font-bold text-primary hover:underline">View All</Link>
+                        </div>
+                        <div className="space-y-4">
+                          {orders.slice(0, 3).map((o: any) => {
+                            const item = o.items?.[0];
+                            return (
+                              <Link key={o.id} to={`/orders/${o.id}`} className="flex items-center gap-4 group p-3 -mx-3 rounded-xl hover:bg-muted/30 transition-colors">
+                                {item?.product?.image_url ? (
+                                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50">
+                                    <img src={item.product.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                  </div>
+                                ) : (
+                                  <div className="w-16 h-16 rounded-xl bg-muted/30 shrink-0 border border-border/50" />
+                                )}
+                                <div className="flex-1">
+                                  <p className="font-black text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors">{item?.product?.name || 'Order Item'}</p>
+                                  <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-widest">{o.status}</p>
+                                </div>
+                                <ChevronRight size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                              </Link>
+                            )
+                          })}
+                          {orders.length === 0 && <p className="text-sm text-muted-foreground">No recent orders.</p>}
+                        </div>
+                      </div>
+                      
+                      <div className="bento-card border border-border/50 bg-background/50 backdrop-blur-md">
+                        <div className="flex justify-between items-center mb-6">
+                          <h3 className="text-lg font-black tracking-tight">Recent Trials</h3>
+                          <Link to="/profile?tab=trials" className="text-xs font-bold text-primary hover:underline">View All</Link>
+                        </div>
+                        <div className="space-y-4">
+                          {bookings.slice(0, 3).map((b: any) => (
+                            <Link key={b.id} to={`/profile?tab=trials`} className="flex items-center gap-4 group p-3 -mx-3 rounded-xl hover:bg-muted/30 transition-colors">
+                              <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20 group-hover:bg-primary/20 transition-colors">
+                                <CalendarCheck className="text-primary" size={24} />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-black text-sm text-foreground group-hover:text-primary transition-colors">{b.booking_number}</p>
+                                <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-widest">{b.status}</p>
+                              </div>
+                              <ChevronRight size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                            </Link>
+                          ))}
+                          {bookings.length === 0 && <p className="text-sm text-muted-foreground">No recent trials.</p>}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -260,28 +299,84 @@ export default function Profile() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 gap-6">
-                        {orders.map((o) => (
-                          <div key={o.id} className="bento-card p-8 border-l-4 border-l-cadmium hover:shadow-xl transition-shadow relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-gradient-to-r from-cadmium/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="relative z-10 flex flex-wrap justify-between items-start gap-4 mb-6">
-                              <div>
-                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 block">Order ID</span>
-                                <span className="font-black text-2xl text-foreground font-mono">{o.order_number}</span>
-                                <p className="text-sm text-muted-foreground font-medium mt-2">Placed {new Date(o.created_at).toLocaleDateString()}</p>
+                        {orders.map((o: any) => {
+                          const firstItem = o.items?.[0];
+                          const remainingCount = o.items?.length > 1 ? o.items.length - 1 : 0;
+                          const isCancelled = o.status === 'Cancelled';
+                          const isReturned = o.status === 'Returned' || o.status === 'Refunded';
+                          const isDelivered = o.status === 'Delivered';
+
+                          return (
+                            <Link key={o.id} to={`/orders/${o.id}`} className="bento-card !p-0 border border-border/50 hover:shadow-xl transition-all relative overflow-hidden group block hover:border-primary/50 bg-background/50 backdrop-blur-sm">
+                              <div className="p-4 sm:p-6">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-4 border-b border-border/50">
+                                  <div className="flex items-center gap-3">
+                                    <span className={`w-2.5 h-2.5 rounded-full ${
+                                      isCancelled ? 'bg-red-500' : isReturned ? 'bg-orange-500' : isDelivered ? 'bg-green-500' : 'bg-primary animate-pulse shadow-[0_0_8px_rgba(255,138,0,0.5)]'
+                                    }`} />
+                                    <span className={`font-black text-sm uppercase tracking-widest ${
+                                      isCancelled ? 'text-red-500' : isReturned ? 'text-orange-500' : isDelivered ? 'text-green-600' : 'text-primary'
+                                    }`}>{o.status}</span>
+                                    {isDelivered && !isReturned && <span className="text-xs font-bold text-muted-foreground ml-2 hidden sm:inline">Delivered on {new Date(o.created_at).toLocaleDateString()}</span>}
+                                  </div>
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-muted/50 px-3 py-1.5 rounded-lg border border-border">Order #{o.order_number}</span>
+                                </div>
+
+                                <div className="flex gap-4 sm:gap-6 items-start">
+                                  {firstItem?.product && (
+                                    <div className="w-24 h-32 sm:w-28 sm:h-36 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50 relative shadow-sm">
+                                      <img src={firstItem.product.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                      {firstItem.product.store?.logo_url && (
+                                        <div className="absolute top-1 left-1 w-6 h-6 rounded-md overflow-hidden bg-white border border-border/20 shadow-sm">
+                                          <img src={firstItem.product.store.logo_url} className="w-full h-full object-contain p-0.5" alt={firstItem.product.store.name} />
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0 pt-1">
+                                    {firstItem?.product && (
+                                      <>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 truncate">{firstItem.product.brand}</p>
+                                        <h4 className="text-base sm:text-lg font-black leading-snug line-clamp-2 mb-2 group-hover:text-primary transition-colors">{firstItem.product.name}</h4>
+                                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                                          {firstItem.size && <span className="text-[10px] font-bold text-foreground bg-muted/50 px-2.5 py-1 rounded-md uppercase tracking-wider border border-border/50">Size: {firstItem.size}</span>}
+                                          {firstItem.color && <span className="text-[10px] font-bold text-foreground bg-muted/50 px-2.5 py-1 rounded-md uppercase tracking-wider border border-border/50">Color: {firstItem.color}</span>}
+                                          <span className="text-[10px] font-bold text-foreground bg-muted/50 px-2.5 py-1 rounded-md uppercase tracking-wider border border-border/50">Qty: {firstItem.quantity}</span>
+                                        </div>
+                                      </>
+                                    )}
+                                    {remainingCount > 0 && (
+                                      <p className="text-[11px] font-black text-primary mt-3 bg-primary/5 inline-block px-2.5 py-1 rounded-md">+ {remainingCount} more item{remainingCount > 1 ? 's' : ''}</p>
+                                    )}
+                                  </div>
+                                  <div className="hidden sm:flex flex-col items-end pt-1">
+                                    <p className="text-2xl font-black font-mono tracking-tight">₹{o.total_amount}</p>
+                                    {firstItem?.product?.store && (
+                                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1 text-right">Sold by <br/><span className="text-foreground">{firstItem.product.store.name}</span></p>
+                                    )}
+                                    <div className="mt-4 w-10 h-10 rounded-full bg-muted/30 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors text-muted-foreground">
+                                      <ChevronRight size={20} className="transition-transform group-hover:translate-x-0.5" />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {o.trial_booking && (
+                                  <div className="mt-5 bg-gradient-to-r from-cadmium/10 to-transparent border-l-4 border-cadmium p-4 rounded-r-xl flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 rounded-full bg-cadmium/20 flex items-center justify-center shrink-0">
+                                        <Home className="text-cadmium" size={16} />
+                                      </div>
+                                      <div>
+                                        <p className="text-xs font-black text-cadmium uppercase tracking-widest">Purchased After Home Trial</p>
+                                        <p className="text-[10px] font-bold text-cadmium/70 mt-0.5">Booking ID: {o.trial_booking.booking_number}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                              <span className={`text-xs px-4 py-2 rounded-full font-black uppercase tracking-widest ${
-                                o.status === 'Delivered' ? 'bg-green-500/20 text-green-700 dark:text-green-400' : 'bg-cadmium/20 text-cadmium'
-                              }`}>{o.status}</span>
-                            </div>
-                            <div className="flex justify-between items-center pt-6 border-t border-border/50">
-                              <div>
-                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">Total</span>
-                                <p className="font-black text-foreground text-xl font-mono">₹{o.total_amount}</p>
-                              </div>
-                              <span className="text-xs font-bold bg-muted/50 px-4 py-2 rounded-xl text-foreground uppercase tracking-wider">Via {o.payment_method}</span>
-                            </div>
-                          </div>
-                        ))}
+                            </Link>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
@@ -372,7 +467,7 @@ export default function Profile() {
                           {/* Trial fee explanation */}
                           {!['Cancelled', 'Returned', 'Purchased'].includes(b.status) && (
                             <p className="text-xs text-muted-foreground mb-4">
-                              ₹50 trial fee · adjusted against purchase if you keep items · fully refunded if you return all
+                              ₹100 trial fee · adjusted against purchase if you keep items fully refunded
                             </p>
                           )}
 
@@ -429,11 +524,11 @@ export default function Profile() {
                             <AlertCircle className="mx-auto text-cadmium mb-4" size={48} />
                             <h3 className="text-xl font-black mb-2">Cancel Trial?</h3>
                             <p className="text-sm text-muted-foreground mb-6">
-                              Your ₹50 trial fee will be refunded within 3–5 business days. This action cannot be undone.
+                              Your ₹100 trial fee will be refunded within 3–5 business days. This action cannot be undone.
                             </p>
                             <div className="flex gap-3">
                               <button onClick={() => setCancellingId(null)} className="flex-1 border-2 border-border font-bold py-3 rounded-xl hover:bg-muted/30 transition-colors">Keep Trial</button>
-                              <button onClick={() => { const bid = cancellingId; setCancellingId(null); supabase.from('bookings').update({ status: 'Cancelled' }).eq('id', bid).then(() => { setBookings((prev: any[]) => prev.map((bk) => bk.id === bid ? { ...bk, status: 'Cancelled' } : bk)); toast.success('Trial cancelled. ₹50 will be refunded in 3-5 days.'); }); }} className="flex-1 bg-cadmium hover:bg-cadmium/90 text-white font-black py-3 rounded-xl transition-colors">Yes, Cancel</button>
+                              <button onClick={() => { const bid = cancellingId; setCancellingId(null); supabase.from('bookings').update({ status: 'Cancelled' }).eq('id', bid).then(() => { setBookings((prev: any[]) => prev.map((bk) => bk.id === bid ? { ...bk, status: 'Cancelled' } : bk)); toast.success('Trial cancelled. ₹100 will be refunded in 3-5 days.'); }); }} className="flex-1 bg-cadmium hover:bg-cadmium/90 text-white font-black py-3 rounded-xl transition-colors">Yes, Cancel</button>
                             </div>
                           </motion.div>
                         </motion.div>
