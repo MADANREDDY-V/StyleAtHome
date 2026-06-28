@@ -15,6 +15,8 @@ import TrialBooking from './pages/TrialBooking'
 import Profile from './pages/Profile'
 import AdminDashboard from './pages/AdminDashboard'
 import TrialSession from './pages/TrialSession'
+import PaymentSuccess from './pages/PaymentSuccess'
+import PaymentFailed from './pages/PaymentFailed'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -48,6 +50,8 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/trial-session/:id" element={<TrialSession />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-failed" element={<PaymentFailed />} />
               
               {/* Clerk Auth Routes */}
               <Route path="/sign-in/*" element={

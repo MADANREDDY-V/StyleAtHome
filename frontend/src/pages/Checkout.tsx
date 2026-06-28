@@ -63,6 +63,68 @@ export default function Checkout() {
     setStep(2);
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const createSupabaseOrder = async (finalPaymentMethod: string) => {
+    if (!dbUser) throw new Error('User not authenticated');
+    const orderNumber = 'ORD-' + crypto.randomUUID().split('-')[0].toUpperCase();
+    
+    const { data: order, error: orderError } = await supabase.from('orders').insert({
+      order_number: orderNumber,
+      user_id: dbUser.id,
+      total_amount: total,
+      payment_method: finalPaymentMethod,
+      status: 'Confirmed',
+      delivery_name: address.name,
+      delivery_mobile: address.mobile,
+      delivery_address: `${address.flatNo}, ${address.street}`,
+      delivery_city: address.city,
+      delivery_state: address.state,
+      delivery_pincode: address.pincode,
+    }).select().single();
+
+    if (orderError) throw orderError;
+
+    const orderItems = cart.map(item => ({
+      order_id: order.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      price: item.product?.price || 0
+    }));
+
+    const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
+    if (itemsError) throw itemsError;
+
+    await supabase.from('cart_items').delete().eq('user_id', dbUser.id);
+    await fetchCart(dbUser.id);
+
+    // Save address for future reuse
+    const { data: existingAddr } = await supabase.from('addresses').select('id').eq('user_id', dbUser.id).limit(1);
+    if (!existingAddr || existingAddr.length === 0) {
+      await supabase.from('addresses').insert({
+        user_id: dbUser.id,
+        full_name: address.name,
+        mobile: address.mobile,
+        flat_no: address.flatNo,
+        street: address.street,
+        city: address.city,
+        state: address.state,
+        pincode: address.pincode,
+        is_default: true,
+      });
+    }
+    
+    return order;
+  };
+
   const placeOrder = async () => {
     if (cart.length === 0) {
       toast.error('Requisition is empty');
@@ -71,60 +133,86 @@ export default function Checkout() {
     if (!dbUser) return;
 
     setLoading(true);
-    try {
-      const orderNumber = 'ORD-' + crypto.randomUUID().split('-')[0].toUpperCase();
-      
-      const { data: order, error: orderError } = await supabase.from('orders').insert({
-        order_number: orderNumber,
-        user_id: dbUser.id,
-        total_amount: total,
-        payment_method: payment,
-        status: 'Confirmed',
-        delivery_name: address.name,
-        delivery_mobile: address.mobile,
-        delivery_address: `${address.flatNo}, ${address.street}`,
-        delivery_city: address.city,
-        delivery_state: address.state,
-        delivery_pincode: address.pincode,
-      }).select().single();
 
-      if (orderError) throw orderError;
-
-      const orderItems = cart.map(item => ({
-        order_id: order.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        price: item.product?.price || 0
-      }));
-
-      const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
-      if (itemsError) throw itemsError;
-
-      await supabase.from('cart_items').delete().eq('user_id', dbUser.id);
-      await fetchCart(dbUser.id);
-
-      // Save address for future reuse
-      const { data: existingAddr } = await supabase.from('addresses').select('id').eq('user_id', dbUser.id).limit(1);
-      if (!existingAddr || existingAddr.length === 0) {
-        await supabase.from('addresses').insert({
-          user_id: dbUser.id,
-          full_name: address.name,
-          mobile: address.mobile,
-          flat_no: address.flatNo,
-          street: address.street,
-          city: address.city,
-          state: address.state,
-          pincode: address.pincode,
-          is_default: true,
-        });
+    if (payment !== 'COD') {
+      const res = await loadRazorpayScript();
+      if (!res) {
+        toast.error('Razorpay SDK failed to load. Are you online?');
+        setLoading(false);
+        return;
       }
 
-      toast.success('Logistics confirmed successfully!');
-      navigate('/profile?tab=orders');
-    } catch (err: any) {
-      toast.error(err.message || 'Logistics processing failed');
-    } finally {
-      setLoading(false);
+      try {
+        const orderRes = await fetch('/api/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: total })
+        });
+        
+        if (!orderRes.ok) throw new Error('Failed to create Razorpay order');
+        const rzpOrder = await orderRes.json();
+
+        const options = {
+          key: 'rzp_test_YOUR_KEY', // REPLACE THIS WITH YOUR RAZORPAY TEST KEY ID
+          amount: rzpOrder.amount,
+          currency: rzpOrder.currency,
+          name: 'StyleAtHome',
+          description: 'Premium Fashion Purchase',
+          order_id: rzpOrder.id,
+          handler: async function (response: any) {
+             try {
+               const verifyRes = await fetch('/api/verify-payment', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(response)
+               });
+               const verifyData = await verifyRes.json();
+               if (verifyData.success) {
+                   const order = await createSupabaseOrder(`Razorpay - ${response.razorpay_payment_id}`);
+                   toast.success('Payment successful!');
+                   navigate(`/payment-success?orderId=${order.order_number}&paymentId=${response.razorpay_payment_id}&amount=${total}`);
+               } else {
+                   toast.error('Payment verification failed');
+                   navigate('/payment-failed');
+               }
+             } catch (err) {
+               console.error(err);
+               toast.error('Verification error');
+               navigate('/payment-failed');
+             }
+          },
+          prefill: {
+            name: address.name,
+            email: dbUser.email || '',
+            contact: address.mobile
+          },
+          theme: { color: '#3D1202' },
+          modal: {
+            ondismiss: function() {
+              setLoading(false);
+            }
+          }
+        };
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on('payment.failed', function () {
+           navigate('/payment-failed');
+        });
+        rzp.open();
+      } catch (err: any) {
+         console.error(err);
+         toast.error(err.message || 'Could not initiate payment');
+         setLoading(false);
+      }
+    } else {
+      // COD Flow
+      try {
+        const order = await createSupabaseOrder('COD');
+        toast.success('Order placed successfully!');
+        navigate(`/payment-success?orderId=${order.order_number}&paymentId=COD&amount=${total}`);
+      } catch (err: any) {
+        toast.error(err.message || 'Order placement failed');
+        setLoading(false);
+      }
     }
   };
 
