@@ -60,14 +60,14 @@ export default function Header() {
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${
         isScrolled ? 'py-4' : 'py-6'
       }`}
     >
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
         <motion.div 
           layout
-          className={`flex items-center justify-between gap-4 px-6 transition-all duration-500 ${
+          className={`flex items-center justify-between gap-4 px-6 transition-all duration-150 ${
             isScrolled ? 'bg-[#3D1202]/95 backdrop-blur-md rounded-[2rem] py-3 text-white shadow-xl' : 'bg-transparent py-2 text-foreground'
           }`}
         >

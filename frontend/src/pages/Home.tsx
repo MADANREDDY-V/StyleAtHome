@@ -186,7 +186,7 @@ export default function Home() {
       </section>
 
       {/* 2. FEATURED CATEGORIES (EDITORIAL SLIDER) */}
-      <section className="py-12 lg:py-20 w-full overflow-hidden bg-white">
+      <section className="py-12 lg:py-12 w-full overflow-hidden bg-white">
         <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 mb-12 flex justify-between items-end">
           <div>
             <h2 className="text-3xl md:text-5xl font-black text-[#3D1202] tracking-tight">The Collections.</h2>
@@ -226,7 +226,7 @@ export default function Home() {
       </section>
 
       {/* 3. WHY STYLEATHOME? (ICON CARDS) */}
-      <section className="py-20 lg:py-32 bg-[#F9F6F1]">
+      <section className="py-12 lg:py-16 bg-[#F9F6F1]">
         <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12">
           <div className="text-center mb-16 max-w-3xl mx-auto">
             <h2 className="text-3xl md:text-5xl font-black text-[#3D1202] mb-6 tracking-tight">The Modern Standard.</h2>
@@ -260,7 +260,7 @@ export default function Home() {
       </section>
 
       {/* 4. HOW HOME TRIAL WORKS (TIMELINE) */}
-      <section className="py-20 lg:py-32 bg-[#3D1202] text-white overflow-hidden relative">
+      <section className="py-12 lg:py-16 bg-[#3D1202] text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#FF8A00]/5 rounded-full blur-[100px] translate-x-1/3 -translate-y-1/3 pointer-events-none" />
         
         <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
@@ -299,7 +299,7 @@ export default function Home() {
       </section>
 
       {/* 5. BRAND SHOWCASE (MARQUEE) */}
-      <section className="py-20 bg-white border-b border-black/5 overflow-hidden">
+      <section className="py-12 bg-white border-b border-black/5 overflow-hidden">
         <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 mb-10 text-center">
           <h2 className="text-sm font-bold tracking-widest uppercase text-[#3D1202]/40">Partnered With Excellence</h2>
         </div>
@@ -337,7 +337,7 @@ export default function Home() {
       </section>
 
       {/* 6. TRENDING PRODUCTS */}
-      <section className="py-20 lg:py-32 bg-[#F9F6F1]">
+      <section className="py-12 lg:py-16 bg-[#F9F6F1]">
         <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex justify-between items-end mb-12">
             <div>
@@ -374,7 +374,7 @@ export default function Home() {
       </section>
 
       {/* 7. CUSTOMER TESTIMONIALS (GLASSMORPHISM) */}
-      <section className="py-20 lg:py-32 relative bg-[#3D1202] overflow-hidden">
+      <section className="py-12 lg:py-16 relative bg-[#3D1202] overflow-hidden">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0 opacity-40">
            <img src="https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=2000&auto=format&fit=crop" className="w-full h-full object-cover grayscale mix-blend-multiply" alt="Texture" />
@@ -417,7 +417,7 @@ export default function Home() {
       </section>
 
       {/* 8. STATISTICS (ANIMATED COUNTERS) */}
-      <section className="py-20 bg-white border-b border-black/5">
+      <section className="py-12 bg-white border-b border-black/5">
         <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center divide-x-0 md:divide-x divide-black/10">
             {[
@@ -438,7 +438,7 @@ export default function Home() {
       </section>
 
       {/* 9. WHY HOME TRIAL IS BETTER (COMPARISON) */}
-      <section className="py-20 lg:py-32 bg-[#F9F6F1]">
+      <section className="py-12 lg:py-16 bg-[#F9F6F1]">
         <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
           <div className="flex-1 w-full order-2 lg:order-1">
             <h2 className="text-3xl md:text-5xl font-black text-[#3D1202] tracking-tight mb-12">The Evolution<br/>of Shopping.</h2>
@@ -479,9 +479,9 @@ export default function Home() {
       </section>
 
       {/* 10. CALL TO ACTION BANNER */}
-      <section className="py-20 lg:py-32 bg-white">
+      <section className="py-12 lg:py-16 bg-white">
         <div className="max-w-[1400px] mx-auto px-6 sm:px-8">
-          <div className="relative rounded-[3rem] overflow-hidden bg-gradient-to-br from-[#3D1202] to-[#6B2D0F] px-8 py-20 text-center shadow-2xl flex flex-col items-center">
+          <div className="relative rounded-[3rem] overflow-hidden bg-gradient-to-br from-[#3D1202] to-[#6B2D0F] px-8 py-12 text-center shadow-2xl flex flex-col items-center">
             {/* Animated abstract shapes */}
             <motion.div 
               animate={{ rotate: 360 }}
