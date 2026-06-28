@@ -47,17 +47,16 @@ export default function Home() {
   // Hero Carousel State
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const heroImages = [
-    "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1520006403909-83655ce4475e?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1550639525-c97d455acf70?q=80&w=1200&auto=format&fit=crop"
+    "/hero-img-1.jpg",
+    "/hero-img-2.jpg",
+    "/hero-img-3.jpg",
+    "/hero-img-4.jpg"
   ];
 
   useEffect(() => {
     const timer = setInterval(() => {
       setHeroImageIndex((prev) => (prev + 1) % heroImages.length);
-    }, 4000);
+    }, 2500);
     return () => clearInterval(timer);
   }, [heroImages.length]);
 
