@@ -12,7 +12,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const { dbUser } = useDbUser();
+  const { dbUser, isLoading: isUserLoading } = useDbUser();
   const addToCart = useStore((state) => state.addToCart);
   const addToTrialCart = useStore((state) => state.addToTrialCart);
   const toggleWishlistStore = useStore((state) => state.toggleWishlist);
@@ -21,6 +21,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const isInWishlist = wishlist.includes(product.id);
   const toggleWishlist = (id: number) => {
     if (dbUser) toggleWishlistStore(dbUser.id, id);
+    else if (isUserLoading) toast.error("Please wait, syncing your profile...");
     else toast.error("Please sign in to add items to wishlist");
   };
 
@@ -32,14 +33,16 @@ export default function ProductCard({ product }: ProductCardProps) {
     if (dbUser) {
       addToCart(dbUser.id, product.id);
       toast.success(`${product.name} added to cart`);
-    } else toast.error("Please sign in to add items to cart");
+    } else if (isUserLoading) toast.error("Please wait, syncing your profile...");
+    else toast.error("Please sign in to add items to cart");
   };
 
   const handleAddToTrial = () => {
     if (dbUser) {
       addToTrialCart(dbUser.id, product.id);
       toast.success(`${product.name} added to trial`);
-    } else toast.error("Please sign in to book a home trial");
+    } else if (isUserLoading) toast.error("Please wait, syncing your profile...");
+    else toast.error("Please sign in to book a home trial");
   };
 
   // Magnetic Physics for Image Container

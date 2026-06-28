@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { dbUser } = useDbUser();
+  const { dbUser, isLoading: isUserLoading } = useDbUser();
   const addToCart = useStore((state) => state.addToCart);
   const addToTrialCart = useStore((state) => state.addToTrialCart);
   const toggleWishlistStore = useStore((state) => state.toggleWishlist);
@@ -87,6 +87,8 @@ export default function ProductDetail() {
     if (dbUser) {
       addToCart(dbUser.id, product.id);
       toast.success('Added to cart');
+    } else if (isUserLoading) {
+      toast.error('Please wait, syncing your profile...');
     } else {
       toast.error("Please sign in to add items to cart");
     }
@@ -96,12 +98,15 @@ export default function ProductDetail() {
     if (dbUser) {
       addToTrialCart(dbUser.id, product.id, selectedSize, selectedColor);
       toast.success('Added to home trial cart');
+    } else if (isUserLoading) {
+      toast.error('Please wait, syncing your profile...');
     } else {
       toast.error("Please sign in to add items for home trial");
     }
   };
 
   const handleSubmitReview = async () => {
+    if (isUserLoading) { toast.error("Please wait, syncing your profile..."); return; }
     if (!dbUser) { toast.error("Sign in to write a review"); return; }
     if (!reviewText.trim()) { toast.error("Write something first"); return; }
     setSubmittingReview(true);
@@ -138,6 +143,7 @@ export default function ProductDetail() {
   
   const handleToggleWishlist = () => {
     if (dbUser) toggleWishlistStore(dbUser.id, Number(id));
+    else if (isUserLoading) toast.error("Please wait, syncing your profile...");
     else toast.error("Please sign in to add items to wishlist");
   };
 
