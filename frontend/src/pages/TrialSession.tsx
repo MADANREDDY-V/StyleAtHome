@@ -145,7 +145,7 @@ export default function TrialSession() {
     toast.success(
       keptItems.length > 0
         ? `${keptItems.length} item${keptItems.length > 1 ? 's' : ''} added to cart! Complete purchase in cart.`
-        : 'All items returned. Your ₹50 trial fee will be refunded.',
+        : `All items returned. Your ₹${booking.fee} trial fee will be refunded.`,
       { duration: 5000 }
     );
 
