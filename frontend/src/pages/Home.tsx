@@ -77,7 +77,7 @@ export default function Home() {
           />
         </div>
 
-        <div className="w-full max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 relative z-10 flex flex-col lg:flex-row items-center gap-12 lg:gap-24 pt-20">
+        <div className="w-full max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 relative z-10 flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
           
           {/* Hero Typography */}
           <motion.div 
@@ -178,8 +178,8 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
             {[
               { name: "Men", img: "https://images.unsplash.com/photo-1617137968427-85924c800a22?q=80&w=800&auto=format&fit=crop" },
-              { name: "Women", img: "https://images.unsplash.com/photo-1485230895905-ef0e1bb425c2?q=80&w=800&auto=format&fit=crop" },
-              { name: "Kids", img: "https://images.unsplash.com/photo-1519238396522-870631622830?q=80&w=800&auto=format&fit=crop" },
+              { name: "Women", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop" },
+              { name: "Kids", img: "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?q=80&w=800&auto=format&fit=crop" },
             ].map((cat, i) => (
               <Link 
                 key={i} 

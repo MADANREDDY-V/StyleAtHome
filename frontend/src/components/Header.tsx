@@ -68,7 +68,7 @@ export default function Header() {
         <motion.div 
           layout
           className={`flex items-center justify-between gap-4 px-6 transition-all duration-500 ${
-            isScrolled ? 'liquid-glass rounded-[2rem] py-3' : 'bg-transparent py-2'
+            isScrolled ? 'bg-[#3D1202]/95 backdrop-blur-md rounded-[2rem] py-3 text-white shadow-xl' : 'bg-transparent py-2 text-foreground'
           }`}
         >
           
@@ -84,7 +84,7 @@ export default function Header() {
                 <Logo size={28} className="text-primary" />
               </motion.div>
               <h1 className="text-2xl font-black tracking-tighter hidden sm:block">
-                Style<span className="text-primary">AtHome</span>
+                Style<span className={isScrolled ? "text-[#FF8A00]" : "text-primary"}>AtHome</span>
               </h1>
             </Link>
           </div>
@@ -92,18 +92,26 @@ export default function Header() {
           <nav className="hidden lg:flex items-center gap-8">
             {navLinks.map((link) => {
               const isActive = location.pathname + location.search === link.path;
+              
+              let textClass = 'text-foreground hover:text-primary';
+              if (isScrolled) {
+                textClass = isActive ? 'text-white' : 'text-white/80 hover:text-white';
+              } else {
+                textClass = isActive ? 'text-primary' : 'text-foreground hover:text-primary';
+              }
+
               return (
                 <Link
                   key={link.label}
                   to={link.path}
-                  className={`text-sm font-bold tracking-tight transition-colors relative group ${isActive ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+                  className={`text-sm font-bold tracking-tight transition-colors relative group ${textClass}`}
                 >
                   {link.label}
                   {isActive && (
-                    <motion.div layoutId="nav-indicator" className="absolute -bottom-2 left-0 right-0 h-1 bg-primary rounded-full" />
+                    <motion.div layoutId="nav-indicator" className="absolute -bottom-2 left-0 right-0 h-1 bg-[#FF8A00] rounded-full" />
                   )}
                   {!isActive && (
-                    <span className="absolute -bottom-2 left-0 w-0 h-1 bg-primary/30 rounded-full transition-all group-hover:w-full" />
+                    <span className="absolute -bottom-2 left-0 w-0 h-1 bg-[#FF8A00]/50 rounded-full transition-all group-hover:w-full" />
                   )}
                 </Link>
               );
@@ -112,7 +120,11 @@ export default function Header() {
             {isAdmin && (
               <Link
                 to="/admin"
-                className={`text-sm font-bold tracking-tight transition-colors relative group flex items-center gap-1.5 ${location.pathname === '/admin' ? 'text-primary' : 'text-cadmium hover:text-primary'}`}
+                className={`text-sm font-bold tracking-tight transition-colors relative group flex items-center gap-1.5 ${
+                  isScrolled 
+                    ? (location.pathname === '/admin' ? 'text-white' : 'text-[#FF8A00] hover:text-white')
+                    : (location.pathname === '/admin' ? 'text-primary' : 'text-cadmium hover:text-primary')
+                }`}
               >
                 <Shield size={14} /> Admin
                 {location.pathname === '/admin' && (
@@ -124,14 +136,16 @@ export default function Header() {
 
           <div className="flex items-center gap-3 sm:gap-6">
             <form onSubmit={submitSearch} className="relative hidden md:block">
-              <div className="flex items-center bg-black/5 dark:bg-white/10 rounded-full px-4 py-2.5 border border-transparent focus-within:border-primary/50 transition-colors w-48 lg:w-64">
-                <Search size={16} className="text-muted-foreground" />
+              <div className={`flex items-center rounded-full px-4 py-2.5 border transition-colors w-48 lg:w-64 ${
+                isScrolled ? 'bg-white/10 border-white/20 focus-within:border-white text-white' : 'bg-black/5 dark:bg-white/10 border-transparent focus-within:border-primary/50 text-foreground'
+              }`}>
+                <Search size={16} className={isScrolled ? "text-white/70" : "text-muted-foreground"} />
                 <input
                   type="text"
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 bg-transparent ml-2 text-sm font-medium outline-none placeholder:text-muted-foreground placeholder:font-medium"
+                  className="flex-1 bg-transparent ml-2 text-sm font-medium outline-none placeholder:text-inherit placeholder:opacity-60"
                 />
               </div>
             </form>
@@ -186,8 +200,10 @@ export default function Header() {
 
             <SignedOut>
               <div className="flex items-center gap-4">
-                <Link to="/sign-in" className="text-sm font-bold hover:text-primary transition-colors hidden sm:block">Log in</Link>
-                <Link to="/sign-up" className="text-sm font-bold bg-foreground text-background px-5 py-2.5 rounded-full hover:bg-foreground/90 transition-all hover:-translate-y-[1px] active:scale-[0.98] shadow-lg">Get Started</Link>
+                <Link to="/sign-in" className={`text-sm font-bold transition-colors hidden sm:block ${isScrolled ? 'text-white hover:text-white/80' : 'hover:text-primary'}`}>Log in</Link>
+                <Link to="/sign-up" className={`text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:-translate-y-[1px] active:scale-[0.98] shadow-lg ${
+                  isScrolled ? 'bg-white text-[#3D1202] hover:bg-white/90' : 'bg-foreground text-background hover:bg-foreground/90'
+                }`}>Get Started</Link>
               </div>
             </SignedOut>
           </div>
