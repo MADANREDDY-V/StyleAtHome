@@ -1,0 +1,14 @@
+flowchart TD
+    User([User])
+    Admin([Admin])
+    System((StyleAtHome
+E-Commerce
+System))
+    
+    User -- Product Request --> System
+    User -- Trial Booking --> System
+    System -- Order Details --> User
+    System -- Trial Confirmation --> User
+    
+    Admin -- Product Updates --> System
+    System -- Live Notifications --> Admin

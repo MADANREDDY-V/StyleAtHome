@@ -1,0 +1,18 @@
+flowchart TD
+    Start([Start]) --> Login{Logged In?}
+    Login -- No --> SignIn[Clerk Auth]
+    SignIn --> Browse[Browse Products]
+    Login -- Yes --> Browse
+    
+    Browse --> Action{Action?}
+    Action -- Add to Cart --> Cart[Standard Cart]
+    Action -- Add to Trial --> TrialCart[Trial Cart]
+    
+    Cart --> Checkout[Checkout Process]
+    TrialCart --> BookTrial[Book Home Trial]
+    BookTrial --> Session[Trial Session (60 mins)]
+    Session --> KeepReturn{Keep Items?}
+    KeepReturn -- Yes --> Checkout
+    KeepReturn -- No --> Finish([End Session])
+    
+    Checkout --> Finish

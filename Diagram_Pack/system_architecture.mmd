@@ -1,0 +1,34 @@
+graph TD
+    subgraph "Frontend Client (React 19, Vite, Tailwind)"
+        A[User Interface] --> B[Zustand State Manager]
+        B --> C[Cart Store]
+        B --> D[Trial Cart Store]
+        B --> E[Wishlist Store]
+        A --> F[React Router]
+    end
+
+    subgraph "Authentication Service"
+        G[Clerk Cloud Auth]
+        A -- OAuth / Email / Pass --> G
+    end
+
+    subgraph "Backend Infrastructure (Supabase)"
+        H[Supabase PostgREST API]
+        I[Supabase Realtime]
+        J[Supabase Storage]
+        K[(PostgreSQL DB + RLS)]
+
+        H --> K
+        I --> K
+        J --> K
+    end
+
+    A -- REST Calls --> H
+    A -- WebSocket Subscribe --> I
+    A -- Image Fetch --> J
+    G -- Sync dbUser --> K
+
+    subgraph "External Deployment"
+        L[Vercel CDN]
+        L -- Serve SPA --> A
+    end

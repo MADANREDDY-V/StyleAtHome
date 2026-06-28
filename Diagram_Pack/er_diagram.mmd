@@ -1,0 +1,18 @@
+erDiagram
+    USERS ||--o{ CART_ITEMS : "has"
+    USERS ||--o{ TRIAL_CART_ITEMS : "has"
+    USERS ||--o{ WISHLIST_ITEMS : "has"
+    USERS ||--o{ ORDERS : "places"
+    USERS ||--o{ BOOKINGS : "books"
+    USERS ||--o{ ADDRESSES : "has"
+    USERS ||--o{ REVIEWS : "writes"
+    
+    PRODUCTS ||--o{ CART_ITEMS : "in"
+    PRODUCTS ||--o{ TRIAL_CART_ITEMS : "in"
+    PRODUCTS ||--o{ WISHLIST_ITEMS : "in"
+    PRODUCTS ||--o{ ORDER_ITEMS : "in"
+    PRODUCTS ||--o{ REVIEWS : "has"
+    
+    CATEGORIES ||--o{ PRODUCTS : "contains"
+    STORES ||--o{ PRODUCTS : "sells"
+    ORDERS ||--o{ ORDER_ITEMS : "contains"

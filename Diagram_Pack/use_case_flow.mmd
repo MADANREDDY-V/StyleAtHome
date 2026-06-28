@@ -1,0 +1,20 @@
+flowchart LR
+    User([Shopper])
+    Admin([Administrator])
+    
+    subgraph System
+        B(Browse Products)
+        C(Manage Trial Cart)
+        D(Book Home Trial)
+        E(Place Order)
+        F(Manage Products)
+        G(View Live Dashboard)
+    end
+    
+    User --> B
+    User --> C
+    User --> D
+    User --> E
+    
+    Admin --> F
+    Admin --> G

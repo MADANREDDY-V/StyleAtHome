@@ -1,0 +1,26 @@
+graph TD
+    subgraph Client Device
+        Browser[Web Browser]
+    end
+    
+    subgraph Vercel
+        SPA[React SPA Static Files]
+    end
+    
+    subgraph Clerk Platform
+        Auth[Identity Provider]
+    end
+    
+    subgraph Supabase Platform
+        API[PostgREST API]
+        DB[(PostgreSQL)]
+        Realtime[WebSockets]
+        Storage[S3 Bucket]
+    end
+    
+    Browser -- HTTPS --> SPA
+    Browser -- JWT Auth --> Auth
+    Browser -- REST --> API
+    Browser -- wss:// --> Realtime
+    API --> DB
+    Realtime --> DB
