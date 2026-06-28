@@ -135,11 +135,7 @@ export default function TrialSession() {
 
     // Add kept items to cart
     for (const item of keptItems) {
-      await addToCart(dbUser.id, item.product_id, 1, (item as any).size, (item as any).color);
-    }
-
-    if (keptItems.length > 0) {
-      localStorage.setItem('trial_booking_id', String(booking.id));
+      await addToCart(dbUser.id, item.product_id);
     }
 
     // Update booking status

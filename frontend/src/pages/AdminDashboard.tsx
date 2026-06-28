@@ -205,9 +205,8 @@ export default function AdminDashboard() {
   }
 
   // Order status update
-  async function updateOrderStatus(id: number, status: string, currentHistory: any[] = []) {
-    const newHistory = [...currentHistory, { status, timestamp: new Date().toISOString() }];
-    const { error } = await supabase.from('orders').update({ status, status_history: newHistory }).eq('id', id);
+  async function updateOrderStatus(id: number, status: string) {
+    const { error } = await supabase.from('orders').update({ status }).eq('id', id);
     if (error) toast.error(error.message); else { toast.success('Status updated'); fetchOrders(); }
   }
   async function updateBookingStatus(id: number, status: string) {
@@ -459,8 +458,8 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-center gap-4">
                     <p className="font-black font-mono text-xl">₹{o.total_amount}</p>
-                    <select value={o.status} onChange={e => updateOrderStatus(o.id, e.target.value, o.status_history || [])} className="bg-muted/30 border border-border rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/50">
-                      {['Placed', 'Confirmed', 'Packed', 'Shipped', 'Reached Local Hub', 'Out For Delivery', 'Delivered', 'Cancelled', 'Returned', 'Refunded'].map(s => <option key={s} value={s}>{s}</option>)}
+                    <select value={o.status} onChange={e => updateOrderStatus(o.id, e.target.value)} className="bg-muted/30 border border-border rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/50">
+                      {['Processing', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                 </div>

@@ -77,23 +77,19 @@ export default function Checkout() {
   const createSupabaseOrder = async (finalPaymentMethod: string) => {
     if (!dbUser) throw new Error('User not authenticated');
     const orderNumber = 'ORD-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15)).split('-')[0].toUpperCase();
-    const trialBookingIdStr = localStorage.getItem('trial_booking_id');
-    const trialBookingId = trialBookingIdStr ? Number(trialBookingIdStr) : null;
     
     const { data: order, error: orderError } = await supabase.from('orders').insert({
       order_number: orderNumber,
       user_id: dbUser.id,
       total_amount: total,
       payment_method: finalPaymentMethod,
-      status: 'Placed',
-      status_history: [{ status: 'Placed', timestamp: new Date().toISOString() }],
+      status: 'Confirmed',
       delivery_name: address.name,
       delivery_mobile: address.mobile,
       delivery_address: `${address.flatNo}, ${address.street}`,
       delivery_city: address.city,
       delivery_state: address.state,
       delivery_pincode: address.pincode,
-      trial_booking_id: trialBookingId
     }).select().single();
 
     if (orderError) throw orderError;
@@ -102,9 +98,7 @@ export default function Checkout() {
       order_id: order.id,
       product_id: item.product_id,
       quantity: item.quantity,
-      price: item.product?.price || 0,
-      size: item.size || null,
-      color: item.color || null
+      price: item.product?.price || 0
     }));
 
     const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
@@ -112,9 +106,6 @@ export default function Checkout() {
 
     await supabase.from('cart_items').delete().eq('user_id', dbUser.id);
     await fetchCart(dbUser.id);
-    if (trialBookingIdStr) {
-      localStorage.removeItem('trial_booking_id');
-    }
 
     // Save address for future reuse
     const { data: existingAddr } = await supabase.from('addresses').select('id').eq('user_id', dbUser.id).limit(1);
@@ -183,8 +174,7 @@ export default function Checkout() {
                if (verifyData.success) {
                    const order = await createSupabaseOrder(`Razorpay - ${response.razorpay_payment_id}`);
                    toast.success('Payment successful!');
-                   const isTrial = localStorage.getItem('trial_booking_id') ? 'true' : 'false';
-                   navigate(`/payment-success?orderId=${order.order_number}&paymentId=${response.razorpay_payment_id}&amount=${total}&isTrial=${isTrial}`);
+                   navigate(`/payment-success?orderId=${order.order_number}&paymentId=${response.razorpay_payment_id}&amount=${total}`);
                } else {
                    toast.error('Payment verification failed');
                    navigate('/payment-failed');
@@ -220,11 +210,9 @@ export default function Checkout() {
     } else {
       // COD Flow
       try {
-        const trialBookingIdStr = localStorage.getItem('trial_booking_id');
         const order = await createSupabaseOrder('COD');
         toast.success('Order placed successfully!');
-        const isTrial = trialBookingIdStr ? 'true' : 'false';
-        navigate(`/payment-success?orderId=${order.order_number}&paymentId=COD&amount=${total}&isTrial=${isTrial}`);
+        navigate(`/payment-success?orderId=${order.order_number}&paymentId=COD&amount=${total}`);
       } catch (err: any) {
         toast.error(err.message || 'Order placement failed');
         setLoading(false);
@@ -390,10 +378,6 @@ export default function Checkout() {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-black line-clamp-2 text-foreground leading-snug">{item.product?.name}</p>
-                    <div className="flex gap-2 items-center mt-1">
-                      {item.size && <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full font-bold">Size: {item.size}</span>}
-                      {item.color && <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full font-bold">Color: {item.color}</span>}
-                    </div>
                     <p className="text-xs font-bold text-muted-foreground mt-2 uppercase tracking-widest">Qty: {item.quantity}</p>
                   </div>
                   <span className="font-mono font-black text-lg">₹{((item.product?.price || 0) * item.quantity).toFixed(0)}</span>
