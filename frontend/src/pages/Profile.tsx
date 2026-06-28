@@ -40,7 +40,7 @@ export default function Profile() {
       const promises = [];
       
       if (['orders', 'overview'].includes(tab)) {
-        promises.push(supabase.from('orders').select('*').eq('user_id', dbUser!.id).order('created_at', { ascending: false }).then((r) => setOrders(r.data || [])));
+        promises.push(supabase.from('orders').select('id, order_number, created_at, status, total_amount, payment_method').eq('user_id', dbUser!.id).order('created_at', { ascending: false }).then((r) => setOrders(r.data || [])));
       }
       if (['trials', 'overview'].includes(tab)) {
         promises.push(supabase.from('bookings').select('*').eq('user_id', dbUser!.id).order('created_at', { ascending: false }).then((r) => setBookings(r.data || [])));

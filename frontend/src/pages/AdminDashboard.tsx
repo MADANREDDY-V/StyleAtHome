@@ -110,7 +110,7 @@ export default function AdminDashboard() {
   async function fetchOverview() {
     const [usersRes, ordersRes, productsRes] = await Promise.all([
       supabase.from('users').select('*', { count: 'exact' }),
-      supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(50),
+      supabase.from('orders').select('id, total_amount, delivery_name, order_number, status, delivery_city, created_at').order('created_at', { ascending: false }).limit(50),
       supabase.from('products').select('*', { count: 'exact' }),
     ]);
     const allOrders = ordersRes.data || [];
@@ -135,7 +135,7 @@ export default function AdminDashboard() {
     if (data) setStores(data);
   }
   async function fetchOrders() {
-    const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase.from('orders').select('id, total_amount, delivery_name, order_number, status, delivery_city, created_at').order('created_at', { ascending: false });
     if (data) setOrders(data);
   }
   async function fetchBookings() {

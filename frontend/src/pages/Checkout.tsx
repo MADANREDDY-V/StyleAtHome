@@ -90,7 +90,7 @@ export default function Checkout() {
       delivery_city: address.city,
       delivery_state: address.state,
       delivery_pincode: address.pincode,
-    }).select().single();
+    }).select('id').single();
 
     if (orderError) throw orderError;
 
