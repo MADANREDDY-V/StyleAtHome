@@ -5,7 +5,7 @@ import {
   CheckCircle2, XCircle, ShoppingBag, 
   ArrowDown
 } from 'lucide-react';
-import { motion, useScroll, useTransform, useInView, animate } from 'framer-motion';
+import { motion, useScroll, useTransform, useInView, animate, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import type { Product, Store } from '../types';
 import ProductCard from '../components/ProductCard';
@@ -44,6 +44,23 @@ export default function Home() {
   const heroImgY = useTransform(scrollY, [0, 1000], [0, 200]);
   const abstractRotate = useTransform(scrollY, [0, 1000], [0, 90]);
 
+  // Hero Carousel State
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
+  const heroImages = [
+    "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1200&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1520006403909-83655ce4475e?q=80&w=1200&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1550639525-c97d455acf70?q=80&w=1200&auto=format&fit=crop"
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [heroImages.length]);
+
   useEffect(() => {
     async function fetchData() {
       const [productsRes, storesRes] = await Promise.all([
@@ -63,7 +80,7 @@ export default function Home() {
     <div className="w-full relative overflow-x-hidden bg-[#F9F6F1] font-sans">
       
       {/* 1. ULTRA-PREMIUM HERO */}
-      <section className="relative w-full min-h-[85vh] lg:min-h-[800px] flex items-center justify-center overflow-hidden pt-24 lg:pt-32">
+      <section className="relative w-full min-h-[70vh] lg:min-h-[600px] flex items-center justify-center overflow-hidden pt-24 lg:pt-28 pb-10">
         {/* Animated Mesh Gradient Background */}
         <div className="absolute inset-0 pointer-events-none opacity-40">
           <motion.div 
@@ -123,13 +140,20 @@ export default function Home() {
             transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="flex-1 w-full relative hidden md:block"
           >
-            <div className="relative aspect-[3/4] lg:aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl">
-              <motion.img 
-                style={{ y: heroImgY, scale: 1.1 }}
-                src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop" 
-                alt="Luxury Fashion Model" 
-                className="w-full h-full object-cover origin-top"
-              />
+            <div className="relative aspect-[3/4] lg:aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl bg-[#E8E1D9]">
+              <AnimatePresence>
+                <motion.img 
+                  key={heroImageIndex}
+                  initial={{ opacity: 0, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                  style={{ y: heroImgY }}
+                  src={heroImages[heroImageIndex]} 
+                  alt="Luxury Fashion Model" 
+                  className="absolute inset-0 w-full h-full object-cover origin-top"
+                />
+              </AnimatePresence>
             </div>
             
             {/* Floating Glassmorphism Card */}
