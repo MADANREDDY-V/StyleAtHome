@@ -6,13 +6,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const bodyPayload = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = bodyPayload;
     const secret = process.env.RAZORPAY_KEY_SECRET || 'YOUR_SECRET';
 
-    const body = razorpay_order_id + '|' + razorpay_payment_id;
+    const verifyBody = String(razorpay_order_id) + '|' + String(razorpay_payment_id);
     const expectedSignature = crypto
       .createHmac('sha256', secret)
-      .update(body.toString())
+      .update(verifyBody)
       .digest('hex');
 
     if (expectedSignature === razorpay_signature) {

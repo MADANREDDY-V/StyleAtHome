@@ -20,6 +20,8 @@ const razorpayPlugin = (env: any) => ({
             } catch (e) {
               req.body = {};
             }
+          } else {
+            req.body = {};
           }
           next();
         });
@@ -29,15 +31,17 @@ const razorpayPlugin = (env: any) => ({
     });
 
     server.middlewares.use(async (req: any, res: any, next: any) => {
-      if (req.url === '/api/create-order' && req.method === 'POST') {
-        try {
+      try {
+        const url = req.url?.split('?')[0];
+        if (url === '/api/create-order' && req.method === 'POST') {
+          const body = req.body || {};
           const instance = new Razorpay({
             key_id: env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY',
             key_secret: env.RAZORPAY_KEY_SECRET || 'YOUR_SECRET',
           });
 
           const options = {
-            amount: Math.round(req.body.amount * 100), // amount in smallest currency unit
+            amount: Math.round((body.amount || 0) * 100),
             currency: 'INR',
             receipt: 'receipt_' + Date.now(),
           };
@@ -45,31 +49,35 @@ const razorpayPlugin = (env: any) => ({
           const order = await instance.orders.create(options);
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify(order));
-        } catch (error) {
-          console.error('Error creating order:', error);
-          res.statusCode = 500;
-          res.end(JSON.stringify({ error: 'Failed to create order' }));
-        }
-      } else if (req.url === '/api/verify-payment' && req.method === 'POST') {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-        const secret = env.RAZORPAY_KEY_SECRET || 'YOUR_SECRET';
+        } else if (url === '/api/verify-payment' && req.method === 'POST') {
+          const bodyPayload = req.body || {};
+          const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = bodyPayload;
+          const secret = env.RAZORPAY_KEY_SECRET || 'YOUR_SECRET';
 
-        const body = razorpay_order_id + '|' + razorpay_payment_id;
-        const expectedSignature = crypto
-          .createHmac('sha256', secret)
-          .update(body.toString())
-          .digest('hex');
+          const verifyBody = String(razorpay_order_id) + '|' + String(razorpay_payment_id);
+          const expectedSignature = crypto
+            .createHmac('sha256', secret)
+            .update(verifyBody)
+            .digest('hex');
 
-        if (expectedSignature === razorpay_signature) {
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ success: true }));
+          if (expectedSignature === razorpay_signature) {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ success: true }));
+          } else {
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ success: false, error: 'Invalid signature' }));
+          }
         } else {
-          res.statusCode = 400;
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ success: false, error: 'Invalid signature' }));
+          next();
         }
-      } else {
-        next();
+      } catch (error) {
+        console.error('API Error:', error);
+        if (!res.headersSent) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'Internal server error' }));
+        }
       }
     });
   }

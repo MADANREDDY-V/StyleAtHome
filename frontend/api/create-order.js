@@ -11,8 +11,9 @@ export default async function handler(req, res) {
       key_secret: process.env.RAZORPAY_KEY_SECRET || 'YOUR_SECRET',
     });
 
+    const bodyPayload = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const options = {
-      amount: Math.round(req.body.amount * 100), // amount in smallest currency unit (paise)
+      amount: Math.round((bodyPayload.amount || 0) * 100), // amount in smallest currency unit (paise)
       currency: 'INR',
       receipt: 'receipt_' + Date.now(),
     };
