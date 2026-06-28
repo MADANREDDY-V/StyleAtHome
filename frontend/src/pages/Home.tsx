@@ -79,7 +79,7 @@ export default function Home() {
     <div className="w-full relative overflow-x-hidden bg-[#F9F6F1] font-sans">
       
       {/* 1. ULTRA-PREMIUM HERO */}
-      <section className="relative w-full min-h-[50vh] lg:min-h-[450px] flex items-center justify-center overflow-hidden pt-16 lg:pt-20 pb-8">
+      <section className="relative w-full min-h-[50vh] lg:min-h-[450px] flex items-center justify-center overflow-hidden pt-32 lg:pt-40 pb-8">
         {/* Animated Mesh Gradient Background */}
         <div className="absolute inset-0 pointer-events-none opacity-40">
           <motion.div 
