@@ -172,7 +172,7 @@ export default function Home() {
         </div>
 
         {loading ? <LoadingSpinner /> : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+          <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-x-3 gap-y-4 md:gap-x-[20px] md:gap-y-[16px]">
             {newArrivals.map((p, i) => (
               <motion.div
                 key={p.id}
