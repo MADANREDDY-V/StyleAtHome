@@ -163,7 +163,7 @@ export default function Home() {
       </section>
 
       {/* 2. FEATURED CATEGORIES (EDITORIAL SLIDER) */}
-      <section className="py-20 lg:py-32 w-full overflow-hidden bg-white">
+      <section className="py-12 lg:py-20 w-full overflow-hidden bg-white">
         <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-12 mb-12 flex justify-between items-end">
           <div>
             <h2 className="text-3xl md:text-5xl font-black text-[#3D1202] tracking-tight">The Collections.</h2>
@@ -178,13 +178,13 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
             {[
               { name: "Men", img: "https://images.unsplash.com/photo-1617137968427-85924c800a22?q=80&w=800&auto=format&fit=crop" },
-              { name: "Women", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop" },
+              { name: "Women", img: "/women-collection.png" },
               { name: "Kids", img: "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?q=80&w=800&auto=format&fit=crop" },
             ].map((cat, i) => (
               <Link 
                 key={i} 
                 to={`/products?section=${cat.name}`} 
-                className="group relative w-full aspect-[4/5] md:aspect-[3/4] overflow-hidden rounded-[1.5rem]"
+                className="group relative w-full aspect-[4/5] md:aspect-[4/4] lg:aspect-[4/5] xl:aspect-[1/1] overflow-hidden rounded-[1.5rem]"
               >
               <img 
                 src={cat.img} 
