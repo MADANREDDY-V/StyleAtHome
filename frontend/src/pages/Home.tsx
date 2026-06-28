@@ -80,7 +80,7 @@ export default function Home() {
     <div className="w-full relative overflow-x-hidden bg-[#F9F6F1] font-sans">
       
       {/* 1. ULTRA-PREMIUM HERO */}
-      <section className="relative w-full min-h-[70vh] lg:min-h-[600px] flex items-center justify-center overflow-hidden pt-24 lg:pt-28 pb-10">
+      <section className="relative w-full min-h-[50vh] lg:min-h-[450px] flex items-center justify-center overflow-hidden pt-16 lg:pt-20 pb-8">
         {/* Animated Mesh Gradient Background */}
         <div className="absolute inset-0 pointer-events-none opacity-40">
           <motion.div 
@@ -138,9 +138,9 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="flex-1 w-full relative hidden md:block"
+            className="flex-1 w-full relative hidden md:block max-w-xl mx-auto"
           >
-            <div className="relative aspect-[3/4] lg:aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl bg-[#E8E1D9]">
+            <div className="relative aspect-square lg:aspect-[5/4] rounded-[2rem] overflow-hidden shadow-2xl bg-[#E8E1D9]">
               <AnimatePresence>
                 <motion.img 
                   key={heroImageIndex}
