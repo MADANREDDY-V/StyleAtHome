@@ -12,6 +12,7 @@ import Cart from './pages/Cart'
 import TrialCart from './pages/TrialCart'
 import Checkout from './pages/Checkout'
 import TrialBooking from './pages/TrialBooking'
+import TrialSuccess from './pages/TrialSuccess'
 import Profile from './pages/Profile'
 import AdminDashboard from './pages/AdminDashboard'
 import TrialSession from './pages/TrialSession'
@@ -47,6 +48,7 @@ function App() {
               <Route path="/trial-cart" element={<TrialCart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/trial-booking" element={<TrialBooking />} />
+              <Route path="/trial-success" element={<TrialSuccess />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/trial-session/:id" element={<TrialSession />} />

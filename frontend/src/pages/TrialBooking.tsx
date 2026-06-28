@@ -82,7 +82,7 @@ export default function TrialBooking() {
         booking_date: selectedDate,
         time_slot: selectedSlot,
         address: addressStr,
-        fee: 50,
+        fee: 100,
         payment_method: 'UPI',
         status: 'Confirmed'
       }).select().single();
@@ -93,7 +93,7 @@ export default function TrialBooking() {
       await fetchTrialCart(dbUser.id);
 
       toast.success('Home trial booked successfully!');
-      navigate('/profile?tab=trials');
+      navigate(`/trial-success?bookingId=${bookingNumber}`);
     } catch (err: any) {
       toast.error(err.message || 'Booking failed');
     } finally {
@@ -253,7 +253,7 @@ export default function TrialBooking() {
                   <div className="flex justify-between items-center"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Items</span><span className="font-bold text-base">{trialCart.length} products</span></div>
                   <div className="flex justify-between items-center"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Date</span><span className="font-bold text-base">{selectedDate}</span></div>
                   <div className="flex justify-between items-center"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Time Slot</span><span className="font-bold text-base">{selectedSlot}</span></div>
-                  <div className="flex justify-between items-center pb-4 border-b border-border"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Booking Fee</span><span className="font-black text-lg text-primary font-mono">₹50</span></div>
+                  <div className="flex justify-between items-center pb-4 border-b border-border"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Booking Fee</span><span className="font-black text-lg text-primary font-mono">₹100</span></div>
                   <div className="pt-2">
                     <p className="text-muted-foreground font-bold uppercase tracking-wider text-xs mb-2">Delivery Address</p>
                     <p className="font-bold text-foreground leading-relaxed">
@@ -293,7 +293,7 @@ export default function TrialBooking() {
               disabled={loading}
               className="flex items-center gap-2 bg-primary hover:bg-cadmium text-white font-bold px-8 py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
             >
-              {loading ? 'Processing...' : 'Confirm & Pay ₹50'}
+              {loading ? 'Processing...' : 'Confirm & Pay ₹100'}
             </button>
           )}
         </div>
