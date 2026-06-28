@@ -1,11 +1,11 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import crypto from 'crypto';
 import Razorpay from 'razorpay';
 
-const razorpayPlugin = () => ({
+const razorpayPlugin = (env: any) => ({
   name: 'razorpay-api',
   configureServer(server: any) {
     // Parse JSON bodies
@@ -32,8 +32,8 @@ const razorpayPlugin = () => ({
       if (req.url === '/api/create-order' && req.method === 'POST') {
         try {
           const instance = new Razorpay({
-            key_id: process.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY',
-            key_secret: process.env.RAZORPAY_KEY_SECRET || 'YOUR_SECRET',
+            key_id: env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY',
+            key_secret: env.RAZORPAY_KEY_SECRET || 'YOUR_SECRET',
           });
 
           const options = {
@@ -52,7 +52,7 @@ const razorpayPlugin = () => ({
         }
       } else if (req.url === '/api/verify-payment' && req.method === 'POST') {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-        const secret = process.env.RAZORPAY_KEY_SECRET || 'YOUR_SECRET';
+        const secret = env.RAZORPAY_KEY_SECRET || 'YOUR_SECRET';
 
         const body = razorpay_order_id + '|' + razorpay_payment_id;
         const expectedSignature = crypto
@@ -76,11 +76,14 @@ const razorpayPlugin = () => ({
 });
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss(), razorpayPlugin()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  return {
+    plugins: [react(), tailwindcss(), razorpayPlugin(env)],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
     },
-  },
-})
+  };
+});

@@ -34,7 +34,9 @@ export default function PaymentSuccess() {
           >
             <CheckCircle className="text-green-600" size={48} />
           </motion.div>
-          <h1 className="text-4xl md:text-5xl font-black text-[#3D1202] tracking-tight mb-4">Payment Successful!</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-[#3D1202] tracking-tight mb-4">
+            {paymentId === 'COD' ? 'Order Confirmed!' : 'Payment Successful!'}
+          </h1>
           <p className="text-lg text-[#3D1202]/70 font-medium">
             Thank you for shopping with StyleAtHome. Your premium lifestyle upgrade is on its way.
           </p>
@@ -56,7 +58,9 @@ export default function PaymentSuccess() {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-[#3D1202]/50 mb-1">Payment Reference</p>
-              <p className="font-black text-lg text-[#3D1202] font-mono">{paymentId || 'N/A'}</p>
+              <p className="font-black text-lg text-[#3D1202] font-mono">
+                {paymentId === 'COD' ? 'Cash on Delivery' : (paymentId || 'N/A')}
+              </p>
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-[#3D1202]/50 mb-1">Amount Paid</p>
