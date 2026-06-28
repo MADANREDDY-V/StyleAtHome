@@ -49,17 +49,6 @@ export default function TrialBooking() {
   minDate.setDate(minDate.getDate() + 1);
   const minDateStr = minDate.toISOString().split('T')[0];
 
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      if ((window as any).Razorpay) return resolve(true);
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
   const handleConfirm = async () => {
     if (!dbUser) return;
     setLoading(true);
@@ -84,91 +73,30 @@ export default function TrialBooking() {
         if (addrError) throw addrError;
       }
 
-      const totalFee = 50 * trialCart.length;
+      const bookingNumber = 'TRL-' + crypto.randomUUID().split('-')[0].toUpperCase();
 
-      const res = await loadRazorpayScript();
-      if (!res) {
-        toast.error('Razorpay SDK failed to load. Are you online?');
-        setLoading(false);
-        return;
-      }
+      const { error: bookingError } = await supabase.from('bookings').insert({
+        booking_number: bookingNumber,
+        user_id: dbUser.id,
+        session_type: 'home-trial',
+        booking_date: selectedDate,
+        time_slot: selectedSlot,
+        address: addressStr,
+        fee: 50,
+        payment_method: 'UPI',
+        status: 'Confirmed'
+      }).select().single();
 
-      const orderRes = await fetch('/api/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: totalFee })
-      });
-      
-      if (!orderRes.ok) throw new Error('Failed to create Razorpay order');
-      const rzpOrder = await orderRes.json();
+      if (bookingError) throw bookingError;
 
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY',
-        amount: rzpOrder.amount,
-        currency: rzpOrder.currency,
-        name: 'StyleAtHome',
-        description: 'Home Trial Booking Fee',
-        order_id: rzpOrder.id,
-        handler: async function (response: any) {
-           try {
-             const verifyRes = await fetch('/api/verify-payment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(response)
-             });
-             const verifyData = await verifyRes.json();
-             if (verifyData.success) {
-                const bookingNumber = 'TRL-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15)).split('-')[0].toUpperCase();
+      await supabase.from('trial_cart_items').delete().eq('user_id', dbUser.id);
+      await fetchTrialCart(dbUser.id);
 
-                const { error: bookingError } = await supabase.from('bookings').insert({
-                  booking_number: bookingNumber,
-                  user_id: dbUser.id,
-                  session_type: 'home-trial',
-                  booking_date: selectedDate,
-                  time_slot: selectedSlot,
-                  address: addressStr,
-                  fee: totalFee,
-                  payment_method: `Razorpay - ${response.razorpay_payment_id}`,
-                  status: 'Confirmed'
-                }).select().single();
-
-                if (bookingError) throw bookingError;
-
-                await supabase.from('trial_cart_items').delete().eq('user_id', dbUser.id);
-                await fetchTrialCart(dbUser.id);
-
-                toast.success('Home trial booked successfully!');
-                navigate('/profile?tab=trials');
-             } else {
-                 toast.error('Payment verification failed');
-                 setLoading(false);
-             }
-           } catch (err) {
-             console.error(err);
-             toast.error('Verification error');
-             setLoading(false);
-           }
-        },
-        prefill: {
-          name: dbUser.name || 'Customer',
-          email: dbUser.email || 'guest@example.com',
-          contact: dbUser.mobile || '9999999999'
-        },
-        theme: { color: '#3D1202' },
-        modal: {
-          ondismiss: function() {
-            setLoading(false);
-          }
-        }
-      };
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on('payment.failed', function () {
-         toast.error('Payment failed');
-         setLoading(false);
-      });
-      rzp.open();
+      toast.success('Home trial booked successfully!');
+      navigate('/profile?tab=trials');
     } catch (err: any) {
       toast.error(err.message || 'Booking failed');
+    } finally {
       setLoading(false);
     }
   };
@@ -228,8 +156,8 @@ export default function TrialBooking() {
                       </div>
                     ))}
                     <div className="flex justify-between items-center p-4 bg-primary/5 rounded-xl border border-primary/20 mt-4">
-                      <p className="text-sm font-bold text-primary">Home Trial Booking Fee (₹50 × {trialCart.length})</p>
-                      <p className="font-black text-primary font-mono">₹{50 * trialCart.length}</p>
+                      <p className="text-sm font-bold text-primary">Home Trial Booking Fee</p>
+                      <p className="font-black text-primary font-mono">₹50</p>
                     </div>
                   </div>
                 )}
@@ -325,7 +253,7 @@ export default function TrialBooking() {
                   <div className="flex justify-between items-center"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Items</span><span className="font-bold text-base">{trialCart.length} products</span></div>
                   <div className="flex justify-between items-center"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Date</span><span className="font-bold text-base">{selectedDate}</span></div>
                   <div className="flex justify-between items-center"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Time Slot</span><span className="font-bold text-base">{selectedSlot}</span></div>
-                  <div className="flex justify-between items-center pb-4 border-b border-border"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Booking Fee</span><span className="font-black text-lg text-primary font-mono">₹{50 * trialCart.length}</span></div>
+                  <div className="flex justify-between items-center pb-4 border-b border-border"><span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Booking Fee</span><span className="font-black text-lg text-primary font-mono">₹50</span></div>
                   <div className="pt-2">
                     <p className="text-muted-foreground font-bold uppercase tracking-wider text-xs mb-2">Delivery Address</p>
                     <p className="font-bold text-foreground leading-relaxed">
@@ -365,7 +293,7 @@ export default function TrialBooking() {
               disabled={loading}
               className="flex items-center gap-2 bg-primary hover:bg-cadmium text-white font-bold px-8 py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
             >
-              {loading ? 'Processing...' : `Confirm & Pay ₹${50 * trialCart.length}`}
+              {loading ? 'Processing...' : 'Confirm & Pay ₹50'}
             </button>
           )}
         </div>
